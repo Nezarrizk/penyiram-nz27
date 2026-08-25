@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Farming Dashboard</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f9f4; color: #333; margin: 0; padding: 0; display: flex; flex-direction: column; min-height: 100vh; }
+        header { background-color: #2e7d32; color: white; text-align: center; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        main { flex: 1; display: flex; flex-wrap: wrap; justify-content: center; padding: 20px; gap: 20px; }
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); text-align: center; width: 300px; }
+        h3 { color: #1b5e20; margin-top: 0; }
+        .data-value { font-size: 2.5rem; font-weight: bold; color: #43a047; margin: 15px 0; }
+        .status-text { font-size: 1.2rem; font-weight: 600; color: #ffa000; }
+        button { background-color: #43a047; color: white; border: none; padding: 12px 20px; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 10px; transition: 0.3s; }
+        button:hover { background-color: #2e7d32; }
+        .btn-off { background-color: #d32f2f; }
+        .btn-off:hover { background-color: #b71c1c; }
+        input[type="number"] { width: 80%; padding: 10px; font-size: 16px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 5px; text-align: center; }
+        footer { background-color: #e8f5e9; text-align: center; padding: 15px; border-top: 2px solid #c8e6c9; font-size: 14px; line-height: 1.6; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Smart Farming Dashboard</h1>
+        <p>Sistem Pemantauan dan Penyiraman Otomatis</p>
+    </header>
+
+    <main>
+        <!-- Kartu Kelembapan -->
+        <div class="card">
+            <h3>💧 Kelembapan Tanah</h3>
+            <div class="data-value" id="moisture_val">--%</div>
+            <div class="status-text" id="status_val">Memuat Status...</div>
+        </div>
+
+        <!-- Kartu Kontrol Manual -->
+        <div class="card">
+            <h3>⚙️ Kontrol Pompa Air</h3>
+            <p style="color: #666; font-size: 14px;">Ambil alih penyiraman secara manual.</p>
+            <button id="btn_manual" onclick="toggleManual()">Memuat...</button>
+        </div>
+
+        <!-- Kartu Jadwal Pupuk -->
+        <div class="card">
+            <h3>🌱 Jadwal Pupuk</h3>
+            <p style="color: #666; font-size: 14px;">Atur interval pupuk (dalam hitungan hari).</p>
+            <input type="number" id="input_pupuk" min="1" max="30" placeholder="Contoh: 6">
+            <button onclick="simpanJadwalPupuk()">Simpan Jadwal</button>
+            <p id="status_simpan" style="font-size: 12px; color: green; margin-top: 10px;"></p>
+        </div>
+    </main>
+
+    <footer>
+        <p><strong>Dibuat oleh Kelompok 2 (12F11):</strong></p>
+        <p>Nezar Rizki A.H (Ketua) | Alfira | Atsani | Danu | Natifa | Rijal</p>
+    </footer>
+
+    <script>
+        const FIREBASE_URL = "https://smart-watering-nz-default-rtdb.asia-southeast1.firebasedatabase.app/penyiram";
+        let isManual = false;
+
+        // Fungsi membaca data dari Firebase setiap 2 detik
+        function fetchData() {
+            fetch(`${FIREBASE_URL}.json`)
+                .then(res => res.json())
+                .then(data => {
+                    if(data) {
+                        // Update Kelembapan & Status
+                        document.getElementById('moisture_val').innerText = (data.kelembapan !== undefined ? data.kelembapan : 0) + "%";
+                        document.getElementById('status_val').innerText = data.status || "Tidak diketahui";
+                        
+                        // Update Input Jadwal Pupuk (hanya jika sedang tidak diketik)
+                        if (document.activeElement !== document.getElementById('input_pupuk')) {
+                            document.getElementById('input_pupuk').value = data.jadwal_pupuk || 6;
+                        }
+
+                        // Update Tombol Manual
+                        isManual = data.manual === true;
+                        const btn = document.getElementById('btn_manual');
+                        if(isManual) {
+                            btn.innerText = "MATIKAN POMPA (MANUAL)";
+                            btn.className = "btn-off";
+                        } else {
+                            btn.innerText = "NYALAKAN POMPA (MANUAL)";
+                            btn.className = "";
+                        }
+                    }
+                })
+                .catch(err => console.log("Error fetch data:", err));
+        }
+
+        // Fungsi mengubah status manual di Firebase
+        function toggleManual() {
+            const newStatus = !isManual;
+            fetch(`${FIREBASE_URL}/manual.json`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newStatus)
+            }).then(() => fetchData());
+        }
+
+        // Fungsi menyimpan jadwal pupuk ke Firebase
+        function simpanJadwalPupuk() {
+            const hari = parseInt(document.getElementById('input_pupuk').value);
+            if(hari >= 1 && hari <= 30) {
+                fetch(`${FIREBASE_URL}/jadwal_pupuk.json`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(hari)
+                }).then(() => {
+                    document.getElementById('status_simpan').innerText = "Berhasil disimpan!";
+                    setTimeout(() => document.getElementById('status_simpan').innerText = "", 3000);
+                });
+            } else {
+                alert("Masukkan hari antara 1 sampai 30.");
+            }
+        }
+
+        // Jalankan fetch otomatis berulang
+        setInterval(fetchData, 2000);
+        fetchData();
+    </script>
+</body>
+</html>
