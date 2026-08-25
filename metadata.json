@@ -1,6 +1,10 @@
 {
   "name": "Smart Farming Dashboard",
-  "description": "Sistem Pemantauan dan Penyiraman Otomatis",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "description": "Sistem Pemantauan dan Penyiraman Otomatis dengan AI Perintah Suara",
+  "requestFramePermissions": [
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }
