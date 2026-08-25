@@ -114,7 +114,15 @@
                     setTimeout(() => document.getElementById('status_simpan').innerText = "", 3000);
                 });
             } else {
-                alert("Masukkan hari antara 1 sampai 30.");
+                const statusEl = document.getElementById('status_simpan');
+                if (statusEl) {
+                    statusEl.innerText = "Masukkan hari antara 1 sampai 30.";
+                    statusEl.style.color = "red";
+                    setTimeout(() => {
+                        statusEl.innerText = "";
+                        statusEl.style.color = "green";
+                    }, 3000);
+                }
             }
         }
 

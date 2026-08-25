@@ -1,0 +1,15 @@
+{
+  "name": "penyiram-nz27",
+  "version": "1.0.0",
+  "description": "Smart Farming Dashboard - Sistem Pemantauan dan Penyiraman Otomatis",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node server.js",
+    "build": "node -e 'process.exit(0)'",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
