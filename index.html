@@ -17,10 +17,11 @@
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
-    <!-- Firebase App & Firebase Auth (Modular Compat CDN) -->
+    <!-- Firebase App, Auth, Firestore, and Realtime Database (Modular Compat CDN) -->
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
     <script>
         tailwind.config = {
@@ -851,8 +852,27 @@
 
     <!-- JAVASCRIPT APPLICATION CORE -->
     <script>
-        const FIREBASE_URL = "https://smart-watering-nz-default-rtdb.asia-southeast1.firebasedatabase.app/penyiram";
-        
+        // ==========================================
+        // FIREBASE INITIALIZATION (OFFICIAL SDK WEBSOCKET)
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyD-dummy-key-for-config-only",
+            authDomain: "ai-studio-penyiramnz27-ad64f0d4-5ab4-4ebf-8e1f-382494aa3ec2.firebaseapp.com",
+            projectId: "ai-studio-penyiramnz27-ad64f0d4-5ab4-4ebf-8e1f-382494aa3ec2",
+            storageBucket: "ai-studio-penyiramnz27-ad64f0d4-5ab4-4ebf-8e1f-382494aa3ec2.firebasestorage.app",
+            messagingSenderId: "835709588881",
+            appId: "1:835709588881:web:7a8b9c0d1e2f3a4b5c6d7e",
+            databaseURL: "https://smart-watering-nz-default-rtdb.asia-southeast1.firebasedatabase.app"
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const rtdb = firebase.database();
+        const penyiramRef = rtdb.ref('penyiram');
+
+        const RTDB_BASE_URL = "https://smart-watering-nz-default-rtdb.asia-southeast1.firebasedatabase.app/penyiram";
+
         let isManual = false;
         let lastMoisture = null;
         let lastManualState = null;
@@ -864,70 +884,8 @@
         let chartInstance = null;
         const moistureHistory = [];
         const timeHistory = [];
-
-        // =========================================================================
-        // FULLY AUTOMATIC ULTRA DATA SAVER ENGINE (SELALU AKTIF OTOMATIS)
-        // =========================================================================
-        let dynamicPollingIntervalMs = 3000;
-        let consecutiveIdenticalPolls = 0;
-        let lastRawDataHash = "";
-        let pollingTimerId = null;
-        let totalRequestsCount = 0;
-        let totalDownloadBytesEst = 0;
-        let lastUserInteractionTime = Date.now();
-
-        // Track user interaction to detect idle screen (menghemat kuota saat dibiarkan menyala)
-        function registerUserActivity() {
-            const wasIdle = (Date.now() - lastUserInteractionTime) > 300000; // 5 menit
-            lastUserInteractionTime = Date.now();
-            if (wasIdle && !document.hidden) {
-                // Langsung refresh seketika saat user kembali menyentuh layar
-                fetchData(false);
-            }
-        }
-        ['touchstart', 'mousedown', 'mousemove', 'keydown', 'scroll', 'click'].forEach(evt => {
-            window.addEventListener(evt, registerUserActivity, { passive: true });
-        });
-
-        function calculatePollingDelay() {
-            // 1. Jika tab di latar belakang / layar HP terkunci: 0 KB (Stop polling total!)
-            if (document.hidden) return null;
-
-            // 2. Jika layar terbuka tetapi dibiarkan lebih dari 5 menit tanpa interaksi: 20 detik
-            const isIdle = (Date.now() - lastUserInteractionTime) > 300000;
-            if (isIdle && !isManual) return 20000;
-
-            // 3. Jika pompa sedang aktif menyiram: responsif 2 detik untuk visualisasi air
-            if (isManual) return 2000;
-
-            // 4. Adaptif otomatis saat sensor tanah stabil (Hemat 80%+ kuota Firebase):
-            if (consecutiveIdenticalPolls > 10) {
-                return 12000; // 12 detik setelah stabil
-            } else if (consecutiveIdenticalPolls > 5) {
-                return 8000;  // 8 detik
-            } else if (consecutiveIdenticalPolls > 2) {
-                return 5000;  // 5 detik
-            }
-
-            // Kondisi data baru / ada fluktuasi: 3 detik
-            return 3000;
-        }
-
-        function scheduleNextPoll() {
-            if (pollingTimerId) clearTimeout(pollingTimerId);
-            const delay = calculatePollingDelay();
-            if (delay !== null) {
-                dynamicPollingIntervalMs = delay;
-                pollingTimerId = setTimeout(() => {
-                    fetchData(false);
-                }, delay);
-            }
-        }
-
-        function resetPollingTimer() {
-            if (pollingTimerId) clearTimeout(pollingTimerId);
-            scheduleNextPoll();
-        }
+        let hasSuccessfulConnection = false;
+        let lastDataReceivedTime = Date.now();
 
         // Last Fertilizer and Debounce state
         let lastFertilizerAdjustTime = 0;
@@ -1961,168 +1919,205 @@
             if (quickWaterFlow) quickWaterFlow.innerText = "Laju: 0.0 L/menit";
         }
 
-        // Main Data Fetch from Firebase RTDB with Latency Measurement & Eco Data Saver
+        // =========================================================================
+        // REALTIME DATABASE WEBSOCKET LISTENER (0 BYTE SAAT TIDAK ADA PERUBAHAN)
+        // =========================================================================
+        function initRealtimeListener() {
+            // Monitor real-time connection state
+            rtdb.ref('.info/connected').on('value', (snap) => {
+                const connected = snap.val() === true;
+                const connPill = document.getElementById('connection_pill');
+                const connText = document.getElementById('connection_text');
+                const pingDot = document.getElementById('ping_dot');
+                const pingRadar = document.getElementById('ping_radar');
+                const latencyEl = document.getElementById('latency_metric');
+
+                if (connected) {
+                    if (connPill) connPill.className = "flex items-center gap-2 px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold bg-emerald-950/60 text-neon-emerald border border-emerald-500/40 shadow-xs";
+                    if (connText) connText.innerText = "CLOUD LIVE";
+                    if (pingDot) pingDot.className = "relative inline-flex rounded-full h-2.5 w-2.5 bg-neon-emerald";
+                    if (pingRadar) pingRadar.className = "animate-ping absolute inline-flex h-full w-full rounded-full bg-neon-emerald opacity-75";
+                    if (latencyEl) latencyEl.innerText = "WS LIVE";
+                } else {
+                    if (connPill) connPill.className = "flex items-center gap-2 px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold bg-amber-950/80 text-amber-400 border border-amber-500/40 shadow-xs";
+                    if (connText) connText.innerText = "CONNECTING";
+                    if (pingDot) pingDot.className = "relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500";
+                    if (pingRadar) pingRadar.className = "hidden";
+                    if (latencyEl) latencyEl.innerText = "OFFLINE";
+                }
+            });
+
+            // WebSocket Real-time Listener on node 'penyiram'
+            penyiramRef.on('value', (snapshot) => {
+                const data = snapshot.val();
+                hasSuccessfulConnection = true;
+                lastDataReceivedTime = Date.now();
+
+                const connPill = document.getElementById('connection_pill');
+                const connText = document.getElementById('connection_text');
+                const pingDot = document.getElementById('ping_dot');
+                const pingRadar = document.getElementById('ping_radar');
+                const latencyEl = document.getElementById('latency_metric');
+
+                if (connPill) connPill.className = "flex items-center gap-2 px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold bg-emerald-950/60 text-neon-emerald border border-emerald-500/40 shadow-xs";
+                if (connText) connText.innerText = "CLOUD LIVE";
+                if (pingDot) pingDot.className = "relative inline-flex rounded-full h-2.5 w-2.5 bg-neon-emerald";
+                if (pingRadar) pingRadar.className = "animate-ping absolute inline-flex h-full w-full rounded-full bg-neon-emerald opacity-75";
+                if (latencyEl) latencyEl.innerText = "WS 0B";
+
+                if (data) {
+                    const moisture = data.kelembapan !== undefined ? Number(data.kelembapan) : 0;
+                    const status = data.status || "Normal";
+                    const jadwalPupuk = data.jadwal_pupuk !== undefined ? data.jadwal_pupuk : 6;
+                    isManual = data.manual === true;
+
+                    // Update Kelembapan
+                    const moistureVal = document.getElementById('moisture_val');
+                    const statusVal = document.getElementById('status_val');
+                    const quickSoil = document.getElementById('quick_soil_status');
+                    const canvasMoist = document.getElementById('canvas_moisture_val');
+                    
+                    if (moistureVal) moistureVal.innerText = `${moisture}%`;
+                    if (statusVal) statusVal.innerText = status;
+                    if (quickSoil) quickSoil.innerText = `${status} (${moisture}%)`;
+                    if (canvasMoist) canvasMoist.innerText = `${moisture}%`;
+                    updateMoistureGauge(moisture);
+
+                    // Update Agronomy Recommendations / Ticker
+                    const recEl = document.getElementById('agri_recommendation_text');
+                    const tickerEl = document.getElementById('ticker_text');
+                    if (moisture === 0) {
+                        if (recEl) recEl.innerText = "🚨 PERINGATAN KRITIS: Kelembapan tanah 0% (Tanah Kering Total!). Sistem pompa penyiraman darurat aktif.";
+                        if (tickerEl) tickerEl.innerText = `🚨 PERINGATAN KRITIS: Kelembapan tanah 0% (Sangat Kering!). Pompa air otomatis dipicu.`;
+                        if (lastMoisture !== 0) {
+                            playSciFiSound('alert');
+                            if (isAIVoiceEnabled) {
+                                playAIVoice("Peringatan! Kelembapan tanah nol persen, tanah sangat kering, sistem penyiraman darurat aktif.", true);
+                            }
+                        }
+                    } else if (moisture < 35) {
+                        if (recEl) recEl.innerText = `⚠️ Peringatan: Kelembapan tanah kritis (${moisture}%). Pompa irigasi otomatis diaktifkan untuk mencegah kekeringan pada tanaman.`;
+                        if (tickerEl) tickerEl.innerText = `⚠️ PERINGATAN: Kelembapan tanah ${moisture}% (Kering). Pompa air dipicu.`;
+                        if (lastMoisture === null || lastMoisture >= 35 || lastMoisture === 0) {
+                            playSciFiSound('alert');
+                            if (isAIVoiceEnabled) {
+                                playAIVoice(`Peringatan! Kelembapan tanah kritis ${moisture} persen, kondisi tanah kering, pompa otomatis aktif.`, true);
+                            }
+                        }
+                    } else if (moisture <= 70) {
+                        if (recEl) recEl.innerText = "🌱 Kondisi kelembapan sangat optimal (36%-70%). Tanaman menyerap nutrisi dan air secara maksimal.";
+                        if (tickerEl) tickerEl.innerText = `🌱 Kelembapan tanah ${moisture}% (Ideal). Sistem irigasi dalam mode siaga otomatis.`;
+                        if (lastMoisture !== null && lastMoisture < 35) {
+                            if (isAIVoiceEnabled) {
+                                playAIVoice(`Kelembapan tanah kembali normal, ${moisture} persen, kondisi optimal.`, true);
+                            }
+                        }
+                    } else {
+                        if (recEl) recEl.innerText = "💧 Kondisi tanah jenuh/basah (>70%). Penyiraman ditunda sementara guna mencegah pembusukan akar.";
+                        if (tickerEl) tickerEl.innerText = `💧 Kelembapan tanah ${moisture}% (Basah). Penyiraman dinonaktifkan sementara.`;
+                    }
+
+                    // Log Activity on Significant Changes
+                    if (lastMoisture !== null && Math.abs(lastMoisture - moisture) >= 4) {
+                        addActivityLog(`[TELEMETRY] Sensor mendeteksi perubahan kelembapan: ${moisture}% (${status})`, moisture < 35 ? 'warn' : 'info');
+                    }
+                    lastMoisture = moisture;
+
+                    // Update Chart.js Buffer
+                    if (chartInstance) {
+                        const nowStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                        chartInstance.data.labels.push(nowStr);
+                        chartInstance.data.datasets[0].data.push(moisture);
+                        if (chartInstance.data.labels.length > 10) {
+                            chartInstance.data.labels.shift();
+                            chartInstance.data.datasets[0].data.shift();
+                        }
+                        chartInstance.update('none');
+                    }
+
+                    // Update Fertilizer Input & Forecast (only when user is not actively adjusting)
+                    const timeSinceUserAdjust = Date.now() - lastFertilizerAdjustTime;
+                    if (timeSinceUserAdjust > 3500) {
+                        const inputPupuk = document.getElementById('input_pupuk');
+                        const sliderPupuk = document.getElementById('slider_pupuk');
+                        
+                        let displayVal = jadwalPupuk;
+                        if (currentFertilizerUnit === 'hours') {
+                            displayVal = Math.max(1, Math.round(jadwalPupuk * 24));
+                        } else if (currentFertilizerUnit === 'weeks') {
+                            displayVal = Math.max(1, +(jadwalPupuk / 7).toFixed(1));
+                        }
+
+                        if (inputPupuk && document.activeElement !== inputPupuk) {
+                            inputPupuk.value = displayVal;
+                        }
+                        if (sliderPupuk && document.activeElement !== sliderPupuk) {
+                            if (displayVal <= parseInt(sliderPupuk.max)) {
+                                sliderPupuk.value = displayVal;
+                            }
+                        }
+                        const quickLabel = document.getElementById('quick_fertilizer_val');
+                        if (quickLabel) {
+                            quickLabel.innerText = `Setiap ${jadwalPupuk} Hari`;
+                        }
+                        updateFertilizerForecast(jadwalPupuk);
+                    }
+
+                    // Update Pump UI
+                    updatePumpUI(isManual);
+                    triggerCanvasRedraw();
+                }
+            }, (error) => {
+                console.error("Firebase Realtime Listener error:", error);
+                const connPill = document.getElementById('connection_pill');
+                const connText = document.getElementById('connection_text');
+                const pingDot = document.getElementById('ping_dot');
+                const pingRadar = document.getElementById('ping_radar');
+                const latencyEl = document.getElementById('latency_metric');
+
+                if (connPill) connPill.className = "flex items-center gap-2 px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold bg-amber-950/80 text-amber-400 border border-amber-500/40 shadow-xs";
+                if (connText) connText.innerText = "RECONNECTING";
+                if (pingDot) pingDot.className = "relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500";
+                if (pingRadar) pingRadar.className = "hidden";
+                if (latencyEl) latencyEl.innerText = "ERR";
+
+                if (lastMoisture === null) {
+                    const fallbackMoisture = 52;
+                    const fallbackStatus = "Ideal (Optimal)";
+                    const moistureVal = document.getElementById('moisture_val');
+                    const statusVal = document.getElementById('status_val');
+                    const quickSoil = document.getElementById('quick_soil_status');
+                    const canvasMoist = document.getElementById('canvas_moisture_val');
+                    
+                    if (moistureVal) moistureVal.innerText = `${fallbackMoisture}%`;
+                    if (statusVal) statusVal.innerText = fallbackStatus;
+                    if (quickSoil) quickSoil.innerText = `${fallbackStatus} (${fallbackMoisture}%)`;
+                    if (canvasMoist) canvasMoist.innerText = `${fallbackMoisture}%`;
+                    updateMoistureGauge(fallbackMoisture);
+                    updatePumpUI(isManual);
+                }
+            });
+        }
+
+        // Manual refresh icon click trigger
         function fetchData(manualTrigger = false) {
             const refreshIcon = document.getElementById('refresh_icon');
-            if (manualTrigger && refreshIcon) refreshIcon.classList.add('animate-spin');
+            if (manualTrigger && refreshIcon) {
+                refreshIcon.classList.add('animate-spin');
+                playSciFiSound('click');
+            }
 
-            const startFetchTime = performance.now();
-            totalRequestsCount++;
-
-            fetch(`${FIREBASE_URL}.json`)
-                .then(res => {
-                    if (!res.ok) throw new Error('Jaringan bermasalah');
-                    return res.json();
-                })
-                .then(data => {
-                    const latency = Math.round(performance.now() - startFetchTime);
-                    document.getElementById('latency_metric').innerText = `${latency} ms`;
-
-                    if (manualTrigger) {
-                        setTimeout(() => refreshIcon.classList.remove('animate-spin'), 600);
-                        playSciFiSound('click');
-                    }
-
-                    // Estimate download quota usage (~180 bytes payload + overhead)
-                    totalDownloadBytesEst += 180;
-
-                    // Connection Badge
-                    document.getElementById('connection_pill').className = "flex items-center gap-2 px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold bg-emerald-950/60 text-neon-emerald border border-emerald-500/40 shadow-xs";
-                    document.getElementById('connection_text').innerText = "CLOUD LIVE";
-                    document.getElementById('ping_dot').className = "relative inline-flex rounded-full h-2.5 w-2.5 bg-neon-emerald";
-                    document.getElementById('ping_radar').className = "animate-ping absolute inline-flex h-full w-full rounded-full bg-neon-emerald opacity-75";
-
-                    if (data) {
-                        const currentHash = JSON.stringify(data);
-                        if (currentHash === lastRawDataHash) {
-                            consecutiveIdenticalPolls++;
-                        } else {
-                            consecutiveIdenticalPolls = 0;
-                            lastRawDataHash = currentHash;
-                        }
-
-                        const moisture = data.kelembapan !== undefined ? Number(data.kelembapan) : 0;
-                        const status = data.status || "Normal";
-                        const jadwalPupuk = data.jadwal_pupuk !== undefined ? data.jadwal_pupuk : 6;
-                        isManual = data.manual === true;
-
-                        // Update Kelembapan
-                        document.getElementById('moisture_val').innerText = `${moisture}%`;
-                        document.getElementById('status_val').innerText = status;
-                        document.getElementById('quick_soil_status').innerText = `${status} (${moisture}%)`;
-                        document.getElementById('canvas_moisture_val').innerText = `${moisture}%`;
-                        updateMoistureGauge(moisture);
-
-                        // Update Agronomy Recommendations / Ticker
-                        const recEl = document.getElementById('agri_recommendation_text');
-                        const tickerEl = document.getElementById('ticker_text');
-                        if (moisture === 0) {
-                            if (recEl) recEl.innerText = "🚨 PERINGATAN KRITIS: Kelembapan tanah 0% (Tanah Kering Total!). Sistem pompa penyiraman darurat aktif.";
-                            if (tickerEl) tickerEl.innerText = `🚨 PERINGATAN KRITIS: Kelembapan tanah 0% (Sangat Kering!). Pompa air otomatis dipicu.`;
-                            if (lastMoisture !== 0) {
-                                playSciFiSound('alert');
-                                if (isAIVoiceEnabled) {
-                                    playAIVoice("Peringatan! Kelembapan tanah nol persen, tanah sangat kering, sistem penyiraman darurat aktif.", true);
-                                }
-                            }
-                        } else if (moisture < 35) {
-                            if (recEl) recEl.innerText = `⚠️ Peringatan: Kelembapan tanah kritis (${moisture}%). Pompa irigasi otomatis diaktifkan untuk mencegah kekeringan pada tanaman.`;
-                            if (tickerEl) tickerEl.innerText = `⚠️ PERINGATAN: Kelembapan tanah ${moisture}% (Kering). Pompa air dipicu.`;
-                            if (lastMoisture === null || lastMoisture >= 35 || lastMoisture === 0) {
-                                playSciFiSound('alert');
-                                if (isAIVoiceEnabled) {
-                                    playAIVoice(`Peringatan! Kelembapan tanah kritis ${moisture} persen, kondisi tanah kering, pompa otomatis aktif.`, true);
-                                }
-                            }
-                        } else if (moisture <= 70) {
-                            if (recEl) recEl.innerText = "🌱 Kondisi kelembapan sangat optimal (36%-70%). Tanaman menyerap nutrisi dan air secara maksimal.";
-                            if (tickerEl) tickerEl.innerText = `🌱 Kelembapan tanah ${moisture}% (Ideal). Sistem irigasi dalam mode siaga otomatis.`;
-                            if (lastMoisture !== null && lastMoisture < 35) {
-                                if (isAIVoiceEnabled) {
-                                    playAIVoice(`Kelembapan tanah kembali normal, ${moisture} persen, kondisi optimal.`, true);
-                                }
-                            }
-                        } else {
-                            if (recEl) recEl.innerText = "💧 Kondisi tanah jenuh/basah (>70%). Penyiraman ditunda sementara guna mencegah pembusukan akar.";
-                            if (tickerEl) tickerEl.innerText = `💧 Kelembapan tanah ${moisture}% (Basah). Penyiraman dinonaktifkan sementara.`;
-                        }
-
-                        // Log Activity on Significant Changes
-                        if (lastMoisture !== null && Math.abs(lastMoisture - moisture) >= 4) {
-                            addActivityLog(`[TELEMETRY] Sensor mendeteksi perubahan kelembapan: ${moisture}% (${status})`, moisture < 35 ? 'warn' : 'info');
-                        }
-                        lastMoisture = moisture;
-
-                        // Update Chart.js Buffer
-                        if (chartInstance) {
-                            const nowStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                            chartInstance.data.labels.push(nowStr);
-                            chartInstance.data.datasets[0].data.push(moisture);
-                            if (chartInstance.data.labels.length > 10) {
-                                chartInstance.data.labels.shift();
-                                chartInstance.data.datasets[0].data.shift();
-                            }
-                            chartInstance.update('none');
-                        }
-
-                        // Update Fertilizer Input & Forecast (only when user is not actively adjusting)
-                        const timeSinceUserAdjust = Date.now() - lastFertilizerAdjustTime;
-                        if (timeSinceUserAdjust > 3500) {
-                            const inputPupuk = document.getElementById('input_pupuk');
-                            const sliderPupuk = document.getElementById('slider_pupuk');
-                            
-                            let displayVal = jadwalPupuk;
-                            if (currentFertilizerUnit === 'hours') {
-                                displayVal = Math.max(1, Math.round(jadwalPupuk * 24));
-                            } else if (currentFertilizerUnit === 'weeks') {
-                                displayVal = Math.max(1, +(jadwalPupuk / 7).toFixed(1));
-                            }
-
-                            if (inputPupuk && document.activeElement !== inputPupuk) {
-                                inputPupuk.value = displayVal;
-                            }
-                            if (sliderPupuk && document.activeElement !== sliderPupuk) {
-                                if (displayVal <= parseInt(sliderPupuk.max)) {
-                                    sliderPupuk.value = displayVal;
-                                }
-                            }
-                            const quickLabel = document.getElementById('quick_fertilizer_val');
-                            if (quickLabel) {
-                                quickLabel.innerText = `Setiap ${jadwalPupuk} Hari`;
-                            }
-                            updateFertilizerForecast(jadwalPupuk);
-                        }
-
-                        // Update Pump UI
-                        updatePumpUI(isManual);
-                        triggerCanvasRedraw();
-                    }
-                })
-                .catch(err => {
-                    console.error("Firebase RTDB sync error:", err);
-                    if (manualTrigger) refreshIcon.classList.remove('animate-spin');
-                    
-                    document.getElementById('connection_pill').className = "flex items-center gap-2 px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold bg-amber-950/80 text-amber-400 border border-amber-500/40 shadow-xs";
-                    document.getElementById('connection_text').innerText = "STANDALONE";
-                    document.getElementById('ping_dot').className = "relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500";
-                    document.getElementById('ping_radar').className = "hidden";
-                    document.getElementById('latency_metric').innerText = "LOCAL";
-
-                    if (lastMoisture === null) {
-                        const fallbackMoisture = 52;
-                        const fallbackStatus = "Ideal (Optimal)";
-                        document.getElementById('moisture_val').innerText = `${fallbackMoisture}%`;
-                        document.getElementById('status_val').innerText = fallbackStatus;
-                        document.getElementById('quick_soil_status').innerText = `${fallbackStatus} (${fallbackMoisture}%)`;
-                        document.getElementById('canvas_moisture_val').innerText = `${fallbackMoisture}%`;
-                        updateMoistureGauge(fallbackMoisture);
-                        updatePumpUI(isManual);
-                    }
-                })
-                .finally(() => {
-                    // Schedule next polling dynamically according to Eco mode & state
-                    scheduleNextPoll();
-                });
+            penyiramRef.once('value').then((snapshot) => {
+                if (manualTrigger && refreshIcon) {
+                    setTimeout(() => refreshIcon.classList.remove('animate-spin'), 600);
+                }
+                showToast("Data Realtime Cloud Terverifikasi");
+            }).catch(err => {
+                if (manualTrigger && refreshIcon) {
+                    refreshIcon.classList.remove('animate-spin');
+                }
+                console.error("Manual sync check error:", err);
+            });
         }
 
         function updateFertilizerForecast(days) {
@@ -2287,12 +2282,19 @@
             }
         }
 
-        // Toggle Manual Pump on Firebase RTDB
-        function toggleManual() {
+        // Toggle Manual Pump on Firebase RTDB with Dual Protocol Reliability
+        async function toggleManual() {
             const newStatus = !isManual;
             const pumpAvatar = document.getElementById('pump_avatar_container');
+            const quickPumpIconWrap = document.getElementById('quick_pump_icon_wrap');
             if (pumpAvatar) pumpAvatar.classList.add('opacity-75', 'cursor-wait');
+            if (quickPumpIconWrap) quickPumpIconWrap.classList.add('opacity-75', 'cursor-wait');
             playSciFiSound('click');
+
+            // Instant Optimistic UI update
+            isManual = newStatus;
+            updatePumpUI(newStatus);
+            triggerCanvasRedraw();
 
             // Immediate AI Voice feedback when button is pressed
             if (newStatus) {
@@ -2301,25 +2303,45 @@
                 playAIVoice("Pompa manual dimatikan.", false);
             }
 
-            fetch(`${FIREBASE_URL}/manual.json`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(newStatus)
-            })
-            .then(res => {
-                if (!res.ok) throw new Error("Gagal transmisi sinyal relay");
-                return res.json();
-            })
-            .then(() => {
-                if (pumpAvatar) pumpAvatar.classList.remove('opacity-75', 'cursor-wait');
-                showToast(newStatus ? "Pompa berhasil dinyalakan (Manual)" : "Pompa berhasil dimatikan");
-                fetchData();
-            })
-            .catch(err => {
-                if (pumpAvatar) pumpAvatar.classList.remove('opacity-75', 'cursor-wait');
-                console.error("Error toggle manual:", err);
-                showToast("Gagal mengubah status pompa.", "error");
-            });
+            let success = false;
+
+            // 1. Try primary Firebase SDK Set
+            try {
+                await penyiramRef.child('manual').set(newStatus);
+                success = true;
+            } catch (sdkErr) {
+                console.warn("Firebase SDK write warning, attempting direct REST fallback:", sdkErr);
+            }
+
+            // 2. Direct HTTP REST fallback if SDK write delayed or blocked
+            if (!success) {
+                try {
+                    const res = await fetch(`${RTDB_BASE_URL}/manual.json`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(newStatus)
+                    });
+                    if (res.ok) {
+                        success = true;
+                    }
+                } catch (fetchErr) {
+                    console.error("Direct REST write error:", fetchErr);
+                }
+            }
+
+            if (pumpAvatar) pumpAvatar.classList.remove('opacity-75', 'cursor-wait');
+            if (quickPumpIconWrap) quickPumpIconWrap.classList.remove('opacity-75', 'cursor-wait');
+
+            if (success) {
+                showToast(newStatus ? "Pompa berhasil dinyalakan (Manual ON)" : "Pompa berhasil dimatikan (STANDBY)");
+            } else {
+                console.error("Failed to transmit manual command to cloud");
+                showToast("Peringatan: Gagal mengirim perintah ke Cloud.", "error");
+                // Rollback optimistic update on confirmed failure
+                isManual = !newStatus;
+                updatePumpUI(isManual);
+                triggerCanvasRedraw();
+            }
         }
 
         // Flexible Fertilizer Unit and State Management
@@ -2479,45 +2501,37 @@
                 playSciFiSound('click');
             }
 
-            fetch(`${FIREBASE_URL}/jadwal_pupuk.json`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(daysToSave)
-            })
-            .then(res => {
-                if (!res.ok) throw new Error("Gagal menyimpan jadwal");
-                return res.json();
-            })
-            .then(() => {
-                const unitName = currentFertilizerUnit === 'hours' ? 'Jam' : (currentFertilizerUnit === 'weeks' ? 'Minggu' : 'Hari');
-                if (isManualClick) {
-                    if (saveBtn) saveBtn.classList.remove('opacity-75', 'cursor-wait');
-                    if (statusEl) {
-                        statusEl.innerText = `✓ TERSIMPAN: SETIAP ${rawVal} ${unitName.toUpperCase()} (${daysToSave} Hari)`;
-                        statusEl.className = "text-xs font-mono font-bold text-neon-emerald glow-text-emerald";
-                    }
-                    showToast(`Jadwal pupuk ${rawVal} ${unitName} tersimpan`);
-                    addActivityLog(`[NUTRIENT] Siklus jadwal pupuk diperbarui: ${rawVal} ${unitName} (${daysToSave} hari).`, 'warn');
+            penyiramRef.child('jadwal_pupuk').set(daysToSave)
+                .then(() => {
+                    const unitName = currentFertilizerUnit === 'hours' ? 'Jam' : (currentFertilizerUnit === 'weeks' ? 'Minggu' : 'Hari');
+                    if (isManualClick) {
+                        if (saveBtn) saveBtn.classList.remove('opacity-75', 'cursor-wait');
+                        if (statusEl) {
+                            statusEl.innerText = `✓ TERSIMPAN: SETIAP ${rawVal} ${unitName.toUpperCase()} (${daysToSave} Hari)`;
+                            statusEl.className = "text-xs font-mono font-bold text-neon-emerald glow-text-emerald";
+                        }
+                        showToast(`Jadwal pupuk ${rawVal} ${unitName} tersimpan`);
+                        addActivityLog(`[NUTRIENT] Siklus jadwal pupuk diperbarui: ${rawVal} ${unitName} (${daysToSave} hari).`, 'warn');
 
-                    setTimeout(() => {
-                        if (statusEl) statusEl.innerText = "";
-                    }, 4000);
-                }
-                const quickLabel = document.getElementById('quick_fertilizer_val');
-                if (quickLabel) quickLabel.innerText = `Setiap ${daysToSave} Hari`;
-                updateFertilizerForecast(daysToSave);
-            })
-            .catch(err => {
-                if (isManualClick) {
-                    if (saveBtn) saveBtn.classList.remove('opacity-75', 'cursor-wait');
-                    console.error("Error simpan jadwal:", err);
-                    if (statusEl) {
-                        statusEl.innerText = "GAGAL MENYIMPAN!";
-                        statusEl.className = "text-xs font-mono font-bold text-rose-500";
+                        setTimeout(() => {
+                            if (statusEl) statusEl.innerText = "";
+                        }, 4000);
                     }
-                    showToast("Gagal menyimpan jadwal pupuk.", "error");
-                }
-            });
+                    const quickLabel = document.getElementById('quick_fertilizer_val');
+                    if (quickLabel) quickLabel.innerText = `Setiap ${daysToSave} Hari`;
+                    updateFertilizerForecast(daysToSave);
+                })
+                .catch(err => {
+                    if (isManualClick) {
+                        if (saveBtn) saveBtn.classList.remove('opacity-75', 'cursor-wait');
+                        console.error("Error simpan jadwal:", err);
+                        if (statusEl) {
+                            statusEl.innerText = "GAGAL MENYIMPAN!";
+                            statusEl.className = "text-xs font-mono font-bold text-rose-500";
+                        }
+                        showToast("Gagal menyimpan jadwal pupuk.", "error");
+                    }
+                });
         }
 
         // Hardware Simulator / Calibration Panel Controls
@@ -2554,17 +2568,12 @@
 
             showToast(`Mengirim simulasi ${val}% (${statusStr})...`);
             
-            fetch(`${FIREBASE_URL}.json`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    kelembapan: val,
-                    status: statusStr
-                })
+            penyiramRef.update({
+                kelembapan: val,
+                status: statusStr
             })
             .then(() => {
                 showToast(`Data kelembapan ${val}% berhasil disinkronisasi`);
-                fetchData();
             })
             .catch(err => {
                 console.error("Error push simulation:", err);
@@ -2629,22 +2638,8 @@
             updateFertilizerForecast(6);
             updateMusicUI();
             
-            // Initial data fetch from Firebase RTDB (subsequent polls are dynamically scheduled via scheduleNextPoll)
-            lastUserInteractionTime = Date.now();
-            fetchData();
-
-            // Visibility handler: Zero Bandwidth Drain when tab/phone screen is locked
-            document.addEventListener('visibilitychange', () => {
-                if (!document.hidden) {
-                    lastUserInteractionTime = Date.now();
-                    resetPollingTimer();
-                    fetchData(false);
-                } else {
-                    // When tab is hidden in background, cancel polling (0 KB drain)
-                    if (pollingTimerId) clearTimeout(pollingTimerId);
-                    resetPollingTimer();
-                }
-            });
+            // Connect to Firebase Realtime Database via WebSocket (Push-only, 0 Byte idle overhead)
+            initRealtimeListener();
         });
     </script>
 </body>
