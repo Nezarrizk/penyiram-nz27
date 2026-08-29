@@ -865,6 +865,70 @@
         const moistureHistory = [];
         const timeHistory = [];
 
+        // =========================================================================
+        // FULLY AUTOMATIC ULTRA DATA SAVER ENGINE (SELALU AKTIF OTOMATIS)
+        // =========================================================================
+        let dynamicPollingIntervalMs = 3000;
+        let consecutiveIdenticalPolls = 0;
+        let lastRawDataHash = "";
+        let pollingTimerId = null;
+        let totalRequestsCount = 0;
+        let totalDownloadBytesEst = 0;
+        let lastUserInteractionTime = Date.now();
+
+        // Track user interaction to detect idle screen (menghemat kuota saat dibiarkan menyala)
+        function registerUserActivity() {
+            const wasIdle = (Date.now() - lastUserInteractionTime) > 300000; // 5 menit
+            lastUserInteractionTime = Date.now();
+            if (wasIdle && !document.hidden) {
+                // Langsung refresh seketika saat user kembali menyentuh layar
+                fetchData(false);
+            }
+        }
+        ['touchstart', 'mousedown', 'mousemove', 'keydown', 'scroll', 'click'].forEach(evt => {
+            window.addEventListener(evt, registerUserActivity, { passive: true });
+        });
+
+        function calculatePollingDelay() {
+            // 1. Jika tab di latar belakang / layar HP terkunci: 0 KB (Stop polling total!)
+            if (document.hidden) return null;
+
+            // 2. Jika layar terbuka tetapi dibiarkan lebih dari 5 menit tanpa interaksi: 20 detik
+            const isIdle = (Date.now() - lastUserInteractionTime) > 300000;
+            if (isIdle && !isManual) return 20000;
+
+            // 3. Jika pompa sedang aktif menyiram: responsif 2 detik untuk visualisasi air
+            if (isManual) return 2000;
+
+            // 4. Adaptif otomatis saat sensor tanah stabil (Hemat 80%+ kuota Firebase):
+            if (consecutiveIdenticalPolls > 10) {
+                return 12000; // 12 detik setelah stabil
+            } else if (consecutiveIdenticalPolls > 5) {
+                return 8000;  // 8 detik
+            } else if (consecutiveIdenticalPolls > 2) {
+                return 5000;  // 5 detik
+            }
+
+            // Kondisi data baru / ada fluktuasi: 3 detik
+            return 3000;
+        }
+
+        function scheduleNextPoll() {
+            if (pollingTimerId) clearTimeout(pollingTimerId);
+            const delay = calculatePollingDelay();
+            if (delay !== null) {
+                dynamicPollingIntervalMs = delay;
+                pollingTimerId = setTimeout(() => {
+                    fetchData(false);
+                }, delay);
+            }
+        }
+
+        function resetPollingTimer() {
+            if (pollingTimerId) clearTimeout(pollingTimerId);
+            scheduleNextPoll();
+        }
+
         // Last Fertilizer and Debounce state
         let lastFertilizerAdjustTime = 0;
         let autoSaveFertilizerTimer = null;
@@ -1897,12 +1961,13 @@
             if (quickWaterFlow) quickWaterFlow.innerText = "Laju: 0.0 L/menit";
         }
 
-        // Main Data Fetch from Firebase RTDB with Latency Measurement
+        // Main Data Fetch from Firebase RTDB with Latency Measurement & Eco Data Saver
         function fetchData(manualTrigger = false) {
             const refreshIcon = document.getElementById('refresh_icon');
             if (manualTrigger && refreshIcon) refreshIcon.classList.add('animate-spin');
 
             const startFetchTime = performance.now();
+            totalRequestsCount++;
 
             fetch(`${FIREBASE_URL}.json`)
                 .then(res => {
@@ -1918,6 +1983,9 @@
                         playSciFiSound('click');
                     }
 
+                    // Estimate download quota usage (~180 bytes payload + overhead)
+                    totalDownloadBytesEst += 180;
+
                     // Connection Badge
                     document.getElementById('connection_pill').className = "flex items-center gap-2 px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold bg-emerald-950/60 text-neon-emerald border border-emerald-500/40 shadow-xs";
                     document.getElementById('connection_text').innerText = "CLOUD LIVE";
@@ -1925,6 +1993,14 @@
                     document.getElementById('ping_radar').className = "animate-ping absolute inline-flex h-full w-full rounded-full bg-neon-emerald opacity-75";
 
                     if (data) {
+                        const currentHash = JSON.stringify(data);
+                        if (currentHash === lastRawDataHash) {
+                            consecutiveIdenticalPolls++;
+                        } else {
+                            consecutiveIdenticalPolls = 0;
+                            lastRawDataHash = currentHash;
+                        }
+
                         const moisture = data.kelembapan !== undefined ? Number(data.kelembapan) : 0;
                         const status = data.status || "Normal";
                         const jadwalPupuk = data.jadwal_pupuk !== undefined ? data.jadwal_pupuk : 6;
@@ -2042,6 +2118,10 @@
                         updateMoistureGauge(fallbackMoisture);
                         updatePumpUI(isManual);
                     }
+                })
+                .finally(() => {
+                    // Schedule next polling dynamically according to Eco mode & state
+                    scheduleNextPoll();
                 });
         }
 
@@ -2546,20 +2626,23 @@
             initChart();
             initFarmCanvas();
             startLiveClock();
-            fetchData();
             updateFertilizerForecast(6);
             updateMusicUI();
+            
+            // Initial data fetch from Firebase RTDB (subsequent polls are dynamically scheduled via scheduleNextPoll)
+            lastUserInteractionTime = Date.now();
+            fetchData();
 
-            // Polling interval sync to Firebase RTDB (only when tab is active to save mobile CPU/battery)
-            setInterval(() => {
-                if (!document.hidden) {
-                    fetchData(false);
-                }
-            }, 2000);
-
+            // Visibility handler: Zero Bandwidth Drain when tab/phone screen is locked
             document.addEventListener('visibilitychange', () => {
                 if (!document.hidden) {
+                    lastUserInteractionTime = Date.now();
+                    resetPollingTimer();
                     fetchData(false);
+                } else {
+                    // When tab is hidden in background, cancel polling (0 KB drain)
+                    if (pollingTimerId) clearTimeout(pollingTimerId);
+                    resetPollingTimer();
                 }
             });
         });
