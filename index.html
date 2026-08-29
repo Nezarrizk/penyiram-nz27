@@ -93,27 +93,61 @@
     </script>
 
     <style>
+        /* Hardware Acceleration & GPU Compositing for Smooth Mobile Experience */
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+
         /* Cyberpunk & Futuristic HUD Styling */
         .hud-glass-dark {
-            background: linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(11, 17, 32, 0.95) 100%);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(0, 255, 157, 0.15);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.92) 0%, rgba(11, 17, 32, 0.98) 100%);
+            border: 1px solid rgba(0, 255, 157, 0.18);
+            box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.35);
+            transform: translateZ(0);
+            backface-visibility: hidden;
         }
         .hud-glass-dark:hover {
             border-color: rgba(0, 255, 157, 0.35);
-            box-shadow: 0 12px 40px 0 rgba(0, 255, 157, 0.08);
         }
 
         .hud-glass-light {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.92) 0%, rgba(240, 253, 244, 0.95) 100%);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(16, 185, 129, 0.2);
-            box-shadow: 0 10px 30px -5px rgba(16, 185, 129, 0.1);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.96) 0%, rgba(240, 253, 244, 0.98) 100%);
+            border: 1px solid rgba(16, 185, 129, 0.22);
+            box-shadow: 0 4px 18px -2px rgba(16, 185, 129, 0.12);
+            transform: translateZ(0);
+            backface-visibility: hidden;
         }
         .hud-glass-light:hover {
             border-color: rgba(16, 185, 129, 0.4);
-            box-shadow: 0 14px 36px -5px rgba(16, 185, 129, 0.18);
+        }
+
+        /* Enable backdrop blur only on high-end desktop screens */
+        @media (min-width: 769px) {
+            .hud-glass-dark {
+                background: linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(11, 17, 32, 0.95) 100%);
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+            }
+            .hud-glass-light {
+                background: linear-gradient(135deg, rgba(255, 255, 255, 0.92) 0%, rgba(240, 253, 244, 0.95) 100%);
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+            }
+        }
+
+        /* Mobile specific optimizations */
+        @media (max-width: 768px) {
+            .glow-text-emerald, .glow-text-cyan {
+                text-shadow: none !important;
+            }
+            .cyber-grid-bg {
+                background-size: 48px 48px;
+            }
+            header {
+                backdrop-filter: none !important;
+                -webkit-backdrop-filter: none !important;
+                background-color: rgba(11, 17, 32, 0.98) !important;
+            }
         }
 
         .hud-bracket {
@@ -242,22 +276,15 @@
                         <span id="clock_date" class="text-[10px] text-slate-400 uppercase">SYNCHRONIZING...</span>
                     </div>
 
-                    <!-- Team Badge -->
-                    <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-emerald-500/40 bg-emerald-950/60 text-neon-emerald text-xs font-mono font-bold">
-                        <i data-lucide="cpu" class="w-3.5 h-3.5 text-neon-emerald"></i>
-                        <span class="hidden sm:inline">KONTROL AKTIF</span>
-                    </div>
 
-                    <!-- AI Voice Assistant Toggle / Status Button (Header) -->
-                    <button id="btn_ai_voice_toggle" onclick="toggleAIVoiceAnnouncer()" title="Aktifkan/Nonaktifkan Suara Pembacaan AI Otomatis" class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-space-900 hover:bg-space-800 border border-cyan-500/40 text-xs font-mono font-bold text-slate-200 hover:text-white transition-all shadow-md active:scale-95 cursor-pointer">
+                    <!-- AI Voice Assistant Toggle / Status Button (Header - Icon Only) -->
+                    <button id="btn_ai_voice_toggle" onclick="toggleAIVoiceAnnouncer()" title="Sakelar Suara Pembacaan AI Otomatis" class="p-2 sm:p-2.5 rounded-xl bg-space-900 hover:bg-space-800 border border-cyan-500/40 text-slate-300 hover:text-white transition-all shadow-md active:scale-95 cursor-pointer">
                         <i id="ai_voice_icon" data-lucide="bot" class="w-4 h-4 text-neon-cyan"></i>
-                        <span class="hidden sm:inline" id="ai_voice_label">SUARA AI: AKTIF</span>
                     </button>
 
-                    <!-- Quick Watering Music Status & Toggle Button (Header) -->
-                    <button id="btn_header_music" onclick="toggleWateringMusicSetting()" title="Sakelar Musik Penyiraman Otomatis" class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-space-900 hover:bg-space-800 border border-emerald-500/40 text-xs font-mono font-bold text-slate-200 hover:text-white transition-all shadow-md active:scale-95 cursor-pointer">
+                    <!-- Quick Watering Music Status & Toggle Button (Header - Icon Only) -->
+                    <button id="btn_header_music" onclick="toggleWateringMusicSetting()" title="Sakelar Musik Penyiraman Otomatis" class="p-2 sm:p-2.5 rounded-xl bg-space-900 hover:bg-space-800 border border-emerald-500/40 text-slate-300 hover:text-white transition-all shadow-md active:scale-95 cursor-pointer">
                         <i id="header_music_icon" data-lucide="music-2" class="w-4 h-4 text-neon-emerald"></i>
-                        <span class="hidden sm:inline" id="header_music_label">MUSIK: AKTIF</span>
                     </button>
 
                     <!-- Audio Sound Effects Toggle -->
@@ -1633,7 +1660,25 @@
             renderCanvas();
         }
 
-        function renderCanvas() {
+        let isCanvasLoopRunning = false;
+
+        function triggerCanvasRedraw() {
+            if (isManual) {
+                if (!isCanvasLoopRunning) {
+                    isCanvasLoopRunning = true;
+                    renderCanvas();
+                }
+            } else {
+                isCanvasLoopRunning = false;
+                if (animFrameId) {
+                    cancelAnimationFrame(animFrameId);
+                    animFrameId = null;
+                }
+                renderCanvasFrame();
+            }
+        }
+
+        function renderCanvasFrame() {
             if (!ctx || !canvas) return;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -1655,10 +1700,10 @@
             ctx.fillStyle = soilGrad;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // 2. Draw Grid Scanlines
-            ctx.strokeStyle = 'rgba(0, 255, 157, 0.05)';
+            // 2. Draw Grid Scanlines (simplified)
+            ctx.strokeStyle = 'rgba(0, 255, 157, 0.04)';
             ctx.lineWidth = 1;
-            const gridSize = 24;
+            const gridSize = 32;
             for (let x = 0; x < canvas.width; x += gridSize) {
                 ctx.beginPath();
                 ctx.moveTo(x, 0);
@@ -1680,16 +1725,14 @@
                     const nx = (canvas.width / (numNozzles + 1)) * n;
                     const ny = 24;
 
-                    // Nozzle Base
                     ctx.fillStyle = '#00f0ff';
                     ctx.beginPath();
-                    ctx.arc(nx, ny, 5, 0, Math.PI * 2);
+                    ctx.arc(nx, ny, 4, 0, Math.PI * 2);
                     ctx.fill();
 
-                    // Spray Arc
                     ctx.strokeStyle = 'rgba(0, 240, 255, 0.25)';
                     ctx.beginPath();
-                    ctx.arc(nx, ny, 45, 0, Math.PI);
+                    ctx.arc(nx, ny, 40, 0, Math.PI);
                     ctx.stroke();
                 }
 
@@ -1714,18 +1757,20 @@
             const probeX = canvas.width / 2;
             const probeY = canvas.height - 30;
             ctx.fillStyle = '#00ff9d';
-            ctx.fillRect(probeX - 15, probeY, 30, 4);
+            ctx.fillRect(probeX - 12, probeY, 24, 3);
             ctx.fillStyle = 'rgba(0, 255, 157, 0.4)';
-            ctx.fillRect(probeX - 2, probeY - 20, 4, 20);
+            ctx.fillRect(probeX - 2, probeY - 18, 4, 18);
+        }
 
-            // Pulse ring around sensor probe
-            const pulseRadius = (Date.now() / 30) % 35;
-            ctx.strokeStyle = `rgba(0, 255, 157, ${1 - pulseRadius / 35})`;
-            ctx.beginPath();
-            ctx.arc(probeX, probeY, pulseRadius, 0, Math.PI * 2);
-            ctx.stroke();
-
-            animFrameId = requestAnimationFrame(renderCanvas);
+        function renderCanvas() {
+            renderCanvasFrame();
+            if (isManual) {
+                isCanvasLoopRunning = true;
+                animFrameId = requestAnimationFrame(renderCanvas);
+            } else {
+                isCanvasLoopRunning = false;
+                animFrameId = null;
+            }
         }
 
         // Initialize Telemetry Sparkline Chart
@@ -1747,15 +1792,16 @@
                         data: moistureHistory,
                         borderColor: '#00ff9d',
                         backgroundColor: 'rgba(0, 255, 157, 0.12)',
-                        borderWidth: 2.5,
+                        borderWidth: 2,
                         fill: true,
-                        tension: 0.35,
-                        pointRadius: 2.5,
-                        pointHoverRadius: 6,
+                        tension: 0.3,
+                        pointRadius: 2,
+                        pointHoverRadius: 4,
                         pointBackgroundColor: '#00f0ff'
                     }]
                 },
                 options: {
+                    animation: false,
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
@@ -1973,6 +2019,7 @@
 
                         // Update Pump UI
                         updatePumpUI(isManual);
+                        triggerCanvasRedraw();
                     }
                 })
                 .catch(err => {
@@ -2154,8 +2201,10 @@
                 }
             }
 
-            lastManualState = manualOn;
-            lucide.createIcons();
+            if (lastManualState !== manualOn) {
+                lastManualState = manualOn;
+                lucide.createIcons();
+            }
         }
 
         // Toggle Manual Pump on Firebase RTDB
@@ -2501,8 +2550,18 @@
             updateFertilizerForecast(6);
             updateMusicUI();
 
-            // Polling interval sync to Firebase RTDB every 2 seconds
-            setInterval(() => fetchData(false), 2000);
+            // Polling interval sync to Firebase RTDB (only when tab is active to save mobile CPU/battery)
+            setInterval(() => {
+                if (!document.hidden) {
+                    fetchData(false);
+                }
+            }, 2000);
+
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden) {
+                    fetchData(false);
+                }
+            });
         });
     </script>
 </body>
