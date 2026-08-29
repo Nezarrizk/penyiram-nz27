@@ -887,8 +887,14 @@
                 </div>
 
                 <div class="p-2 rounded-xl bg-space-950/60 border border-slate-800 text-[10px] text-slate-400 flex items-center justify-between">
-                    <span>Akun Default: <strong class="text-neon-emerald">admin</strong> / <strong class="text-neon-cyan">admin123</strong></span>
-                    <button type="button" onclick="quickFillAdminAccount()" class="text-cyan-400 hover:underline cursor-pointer">Auto Fill</button>
+                    <span>Default: <strong class="text-neon-emerald">admin</strong> / <strong class="text-neon-cyan">admin123</strong></span>
+                    <div class="flex items-center gap-2">
+                        <button type="button" onclick="quickFillAdminAccount()" class="text-cyan-400 hover:underline cursor-pointer">Auto Fill</button>
+                        <span class="text-slate-600">|</span>
+                        <button type="button" onclick="openChangeAccountModal()" class="text-amber-400 hover:underline cursor-pointer flex items-center gap-0.5">
+                            <i data-lucide="settings" class="w-3 h-3 inline"></i> Ubah Akun
+                        </button>
+                    </div>
                 </div>
             </form>
 
@@ -933,6 +939,131 @@
                 </div>
             </div>
 
+        </div>
+    </div>
+
+    <!-- CHANGE USERNAME & PASSWORD MODAL (GANTI AKUN OPERATOR) -->
+    <div id="change_account_modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-space-950/85 backdrop-blur-md transition-all duration-300 opacity-0 pointer-events-none">
+        <div class="relative w-full max-w-md rounded-3xl hud-glass-dark border border-amber-500/40 p-6 shadow-2xl font-mono">
+            
+            <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-4">
+                <div class="flex items-center gap-2 text-white font-bold text-sm uppercase">
+                    <i data-lucide="user-cog" class="w-4 h-4 text-amber-400"></i>
+                    <span>Ubah Akun Operator</span>
+                </div>
+                <button onclick="closeChangeAccountModal()" class="p-1.5 rounded-lg bg-space-900 hover:bg-space-800 border border-slate-700 text-slate-400 hover:text-white cursor-pointer">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <form onsubmit="handleSaveNewAccount(event)" class="space-y-3">
+                <div class="p-2.5 rounded-xl bg-space-950/80 border border-slate-800 text-[11px] text-slate-400">
+                    <div class="flex items-center justify-between">
+                        <span>Akun Saat Ini:</span>
+                        <span id="current_account_badge" class="font-bold text-neon-cyan">admin (Nezar / Admin)</span>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[11px] text-slate-400 mb-1">Password Saat Ini (Verifikasi):</label>
+                    <input type="password" id="input_acc_current_pass" required placeholder="Masukkan password lama (default: admin123)"
+                        class="w-full px-3 py-2 rounded-xl bg-space-950 border border-slate-700 text-white font-mono text-xs focus:border-amber-400 focus:outline-none">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div>
+                        <label class="block text-[11px] text-slate-400 mb-1">Username Baru:</label>
+                        <input type="text" id="input_acc_new_username" required placeholder="misal: operator1"
+                            class="w-full px-3 py-2 rounded-xl bg-space-950 border border-slate-700 text-white font-mono text-xs focus:border-cyan-400 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] text-slate-400 mb-1">Nama Operator:</label>
+                        <input type="text" id="input_acc_new_name" placeholder="misal: Nezar"
+                            class="w-full px-3 py-2 rounded-xl bg-space-950 border border-slate-700 text-white font-mono text-xs focus:border-cyan-400 focus:outline-none">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div>
+                        <label class="block text-[11px] text-slate-400 mb-1">Password Baru:</label>
+                        <input type="password" id="input_acc_new_pass" required placeholder="Minimal 4 karakter"
+                            class="w-full px-3 py-2 rounded-xl bg-space-950 border border-slate-700 text-white font-mono text-xs focus:border-emerald-400 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] text-slate-400 mb-1">Konfirmasi Password:</label>
+                        <input type="password" id="input_acc_confirm_pass" required placeholder="Ulangi password"
+                            class="w-full px-3 py-2 rounded-xl bg-space-950 border border-slate-700 text-white font-mono text-xs focus:border-emerald-400 focus:outline-none">
+                    </div>
+                </div>
+
+                <div id="change_account_error" class="text-xs text-rose-400 text-center font-bold min-h-[1rem]"></div>
+
+                <div class="flex items-center gap-2 pt-2">
+                    <button type="button" onclick="closeChangeAccountModal()" class="flex-1 py-2.5 rounded-xl bg-space-900 hover:bg-space-800 border border-slate-700 text-xs font-bold text-slate-300 cursor-pointer">
+                        BATAL
+                    </button>
+                    <button type="submit" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-emerald-600 hover:from-amber-500 hover:to-emerald-500 text-xs font-bold text-white shadow-md shadow-amber-600/30 cursor-pointer flex items-center justify-center gap-1.5">
+                        <i data-lucide="save" class="w-3.5 h-3.5"></i>
+                        <span>SIMPAN AKUN</span>
+                    </button>
+                </div>
+
+                <div class="text-center pt-1">
+                    <button type="button" onclick="resetAccountToDefault()" class="text-[10px] text-slate-500 hover:text-amber-400 underline cursor-pointer">
+                        Reset Akun ke Default (admin / admin123)
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+
+    <!-- OPERATOR ACTIVE SESSION & PROFILE MODAL -->
+    <div id="operator_session_modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-space-950/85 backdrop-blur-md transition-all duration-300 opacity-0 pointer-events-none">
+        <div class="relative w-full max-w-sm rounded-3xl hud-glass-dark border border-emerald-500/40 p-6 shadow-2xl font-mono text-center">
+            
+            <button onclick="closeOperatorSessionModal()" class="absolute top-4 right-4 p-2 rounded-xl bg-space-900 hover:bg-space-800 border border-slate-700 text-slate-400 hover:text-white cursor-pointer">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+
+            <div class="mx-auto w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-950 to-cyan-950 border border-emerald-400/50 flex items-center justify-center text-neon-emerald shadow-lg shadow-emerald-950/60 mb-3">
+                <i data-lucide="user-check" class="w-7 h-7"></i>
+            </div>
+
+            <h3 class="text-base font-black text-white uppercase tracking-wider">Sesi Operator Aktif</h3>
+            <p class="text-xs text-slate-400 mt-0.5">Anda sedang login dengan hak akses penuh</p>
+
+            <div class="my-4 p-3 rounded-2xl bg-space-950/90 border border-slate-800 text-left space-y-1.5 text-xs">
+                <div class="flex items-center justify-between">
+                    <span class="text-slate-400">Nama Operator:</span>
+                    <span id="session_modal_name" class="font-bold text-neon-emerald">Nezar / Admin</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-slate-400">Username:</span>
+                    <span id="session_modal_username" class="font-bold text-neon-cyan">admin</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-slate-400">Status Akses:</span>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950 text-neon-emerald border border-emerald-500/40">FULL ACCESS</span>
+                </div>
+            </div>
+
+            <div class="space-y-2">
+                <button type="button" onclick="closeOperatorSessionModal(); openChangeAccountModal();" class="w-full py-2.5 rounded-xl bg-space-900 hover:bg-space-800 border border-cyan-500/40 text-xs font-bold text-slate-200 hover:text-white flex items-center justify-center gap-2 cursor-pointer transition-all">
+                    <i data-lucide="user-cog" class="w-4 h-4 text-cyan-400"></i>
+                    <span>Ubah Username & Password</span>
+                </button>
+
+                <button type="button" onclick="closeOperatorSessionModal(); openChangePinModal();" class="w-full py-2.5 rounded-xl bg-space-900 hover:bg-space-800 border border-slate-700 text-xs font-bold text-slate-200 hover:text-white flex items-center justify-center gap-2 cursor-pointer transition-all">
+                    <i data-lucide="key" class="w-4 h-4 text-amber-400"></i>
+                    <span>Ganti PIN 4-Digit</span>
+                </button>
+
+                <button type="button" onclick="closeOperatorSessionModal(); lockOperatorSession();" class="w-full py-2.5 rounded-xl bg-rose-950/70 hover:bg-rose-900/80 border border-rose-500/40 text-xs font-bold text-rose-300 hover:text-white flex items-center justify-center gap-2 cursor-pointer transition-all">
+                    <i data-lucide="log-out" class="w-4 h-4 text-rose-400"></i>
+                    <span>Kunci Sesi / Logout</span>
+                </button>
+            </div>
         </div>
     </div>
 
@@ -1161,10 +1292,151 @@
 
         function handlePinAuthButtonClick() {
             if (isOperatorUnlocked) {
-                lockOperatorSession();
+                openOperatorSessionModal();
             } else {
                 openPinModal('LOGIN OPERATOR');
             }
+        }
+
+        function openOperatorSessionModal() {
+            const creds = getOperatorCredentials();
+            const modal = document.getElementById('operator_session_modal');
+            const nameEl = document.getElementById('session_modal_name');
+            const userEl = document.getElementById('session_modal_username');
+
+            if (nameEl) nameEl.innerText = loggedInOperatorName || creds.name || creds.username;
+            if (userEl) userEl.innerText = creds.username;
+
+            if (modal) {
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+            }
+            playSciFiSound('click');
+        }
+
+        function closeOperatorSessionModal() {
+            const modal = document.getElementById('operator_session_modal');
+            if (modal) {
+                modal.classList.add('opacity-0', 'pointer-events-none');
+            }
+        }
+
+        function openChangeAccountModal() {
+            closePinModal();
+            closeOperatorSessionModal();
+            const modal = document.getElementById('change_account_modal');
+            const creds = getOperatorCredentials();
+            const badge = document.getElementById('current_account_badge');
+            const err = document.getElementById('change_account_error');
+
+            if (badge) {
+                badge.innerText = `${creds.username} (${creds.name || 'Admin'})`;
+            }
+            if (err) err.innerText = '';
+
+            const curPass = document.getElementById('input_acc_current_pass');
+            const newUname = document.getElementById('input_acc_new_username');
+            const newName = document.getElementById('input_acc_new_name');
+            const newPass = document.getElementById('input_acc_new_pass');
+            const confPass = document.getElementById('input_acc_confirm_pass');
+
+            if (curPass) curPass.value = '';
+            if (newUname) newUname.value = creds.username;
+            if (newName) newName.value = creds.name || '';
+            if (newPass) newPass.value = '';
+            if (confPass) confPass.value = '';
+
+            if (modal) {
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+            }
+            playSciFiSound('click');
+        }
+
+        function closeChangeAccountModal() {
+            const modal = document.getElementById('change_account_modal');
+            if (modal) {
+                modal.classList.add('opacity-0', 'pointer-events-none');
+            }
+        }
+
+        function handleSaveNewAccount(e) {
+            e.preventDefault();
+            const currentPass = document.getElementById('input_acc_current_pass').value.trim();
+            const newUsername = document.getElementById('input_acc_new_username').value.trim();
+            const newName = document.getElementById('input_acc_new_name').value.trim();
+            const newPass = document.getElementById('input_acc_new_pass').value.trim();
+            const confPass = document.getElementById('input_acc_confirm_pass').value.trim();
+            const err = document.getElementById('change_account_error');
+
+            const creds = getOperatorCredentials();
+
+            if (currentPass !== creds.password) {
+                if (err) err.innerText = "Password saat ini salah! (Default: admin123)";
+                playSciFiSound('pin_error');
+                return;
+            }
+
+            if (!newUsername || newUsername.length < 3) {
+                if (err) err.innerText = "Username minimal 3 karakter!";
+                playSciFiSound('pin_error');
+                return;
+            }
+
+            if (!newPass || newPass.length < 4) {
+                if (err) err.innerText = "Password baru minimal 4 karakter!";
+                playSciFiSound('pin_error');
+                return;
+            }
+
+            if (newPass !== confPass) {
+                if (err) err.innerText = "Konfirmasi Password tidak sesuai!";
+                playSciFiSound('pin_error');
+                return;
+            }
+
+            const updatedAccount = {
+                username: newUsername,
+                password: newPass,
+                name: newName || newUsername
+            };
+
+            localStorage.setItem('smartfarm_operator_account', JSON.stringify(updatedAccount));
+
+            // Automatically update login state and credentials in form
+            const userInput = document.getElementById('input_username');
+            const passInput = document.getElementById('input_password');
+            if (userInput) userInput.value = newUsername;
+            if (passInput) passInput.value = newPass;
+
+            if (isOperatorUnlocked) {
+                loggedInOperatorName = updatedAccount.name;
+                updatePinAuthUI();
+            }
+
+            closeChangeAccountModal();
+            showToast(`Akun berhasil diperbarui: ${newUsername}`);
+            playSciFiSound('pin_success');
+
+            if (isAIVoiceEnabled) {
+                playAIVoice(`Akun operator berhasil diperbarui untuk ${updatedAccount.name}.`, false);
+            }
+        }
+
+        function resetAccountToDefault() {
+            localStorage.removeItem('smartfarm_operator_account');
+            const creds = getOperatorCredentials();
+            const userInput = document.getElementById('input_username');
+            const passInput = document.getElementById('input_password');
+            if (userInput) userInput.value = creds.username;
+            if (passInput) passInput.value = creds.password;
+
+            if (isOperatorUnlocked) {
+                loggedInOperatorName = creds.name;
+                updatePinAuthUI();
+            }
+
+            closeChangeAccountModal();
+            showToast("Akun operator direset ke: admin / admin123");
+            playSciFiSound('click');
         }
 
         function lockOperatorSession() {
@@ -2511,11 +2783,22 @@
                     console.error("Firebase RTDB sync error:", err);
                     if (manualTrigger) refreshIcon.classList.remove('animate-spin');
                     
-                    document.getElementById('connection_pill').className = "flex items-center gap-2 px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold bg-rose-950/80 text-rose-400 border border-rose-500/40 shadow-xs";
-                    document.getElementById('connection_text').innerText = "DISCONNECTED";
-                    document.getElementById('ping_dot').className = "relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500";
+                    document.getElementById('connection_pill').className = "flex items-center gap-2 px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold bg-amber-950/80 text-amber-400 border border-amber-500/40 shadow-xs";
+                    document.getElementById('connection_text').innerText = "STANDALONE";
+                    document.getElementById('ping_dot').className = "relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500";
                     document.getElementById('ping_radar').className = "hidden";
-                    document.getElementById('latency_metric').innerText = "ERR";
+                    document.getElementById('latency_metric').innerText = "LOCAL";
+
+                    if (lastMoisture === null) {
+                        const fallbackMoisture = 52;
+                        const fallbackStatus = "Ideal (Optimal)";
+                        document.getElementById('moisture_val').innerText = `${fallbackMoisture}%`;
+                        document.getElementById('status_val').innerText = fallbackStatus;
+                        document.getElementById('quick_soil_status').innerText = `${fallbackStatus} (${fallbackMoisture}%)`;
+                        document.getElementById('canvas_moisture_val').innerText = `${fallbackMoisture}%`;
+                        updateMoistureGauge(fallbackMoisture);
+                        updatePumpUI(isManual);
+                    }
                 });
         }
 
@@ -3060,6 +3343,14 @@
             } else if (changePinModal && !changePinModal.classList.contains('pointer-events-none')) {
                 if (e.key === 'Escape') {
                     closeChangePinModal();
+                }
+            } else if (document.getElementById('change_account_modal') && !document.getElementById('change_account_modal').classList.contains('pointer-events-none')) {
+                if (e.key === 'Escape') {
+                    closeChangeAccountModal();
+                }
+            } else if (document.getElementById('operator_session_modal') && !document.getElementById('operator_session_modal').classList.contains('pointer-events-none')) {
+                if (e.key === 'Escape') {
+                    closeOperatorSessionModal();
                 }
             }
         });
