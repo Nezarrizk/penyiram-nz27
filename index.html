@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<html lang="id" class="h-full dark">
+<html lang="id" class="h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Farming IoT - Advanced Autonomous Agri-Station</title>
+    <title>AI Greenhouse - SIRINTIS Smart Agriculture</title>
     
-    <!-- Fonts -->
+    <!-- Fonts (Gilroy Geometric Sans Style - Outfit & Plus Jakarta Sans) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -16,11 +16,11 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- GSAP for Smooth Counter and UI Animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     
-    <!-- Firebase App, Auth, Firestore, and Realtime Database (Modular Compat CDN) -->
+    <!-- Firebase Compat CDN -->
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
     <script>
@@ -29,63 +29,16 @@
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+                        sans: ['"Plus Jakarta Sans"', '"Outfit"', 'system-ui', 'sans-serif'],
                         mono: ['"JetBrains Mono"', 'monospace'],
                     },
                     colors: {
-                        cyber: {
-                            50: '#ecfdf5',
-                            100: '#d1fae5',
-                            200: '#a7f3d0',
-                            300: '#6ee7b7',
-                            400: '#34d399',
-                            500: '#10b981',
-                            600: '#059669',
-                            700: '#047857',
-                            800: '#065f46',
-                            900: '#064e3b',
-                            950: '#022c22',
-                        },
-                        neon: {
-                            emerald: '#00ff9d',
-                            cyan: '#00f0ff',
-                            amber: '#ffb703',
-                            rose: '#ff2a5f',
-                            purple: '#a855f7'
-                        },
-                        space: {
-                            800: '#111827',
-                            850: '#0f172a',
-                            900: '#0b1120',
-                            950: '#060a12'
-                        }
-                    },
-                    animation: {
-                        'pulse-glow': 'pulseGlow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                        'scanline': 'scanline 6s linear infinite',
-                        'radar-sweep': 'radarSweep 3s linear infinite',
-                        'float-slow': 'floatSlow 4s ease-in-out infinite',
-                    },
-                    keyframes: {
-                        pulseGlow: {
-                            '0%, 100%': { opacity: '1', filter: 'drop-shadow(0 0 12px rgba(0, 255, 157, 0.6))' },
-                            '50%': { opacity: '0.6', filter: 'drop-shadow(0 0 4px rgba(0, 255, 157, 0.2))' }
-                        },
-                        scanline: {
-                            '0%': { transform: 'translateY(-100%)' },
-                            '100%': { transform: 'translateY(1000%)' }
-                        },
-                        radarSweep: {
-                            '0%': { transform: 'rotate(0deg)' },
-                            '100%': { transform: 'rotate(360deg)' }
-                        },
-                        floatSlow: {
-                            '0%, 100%': { transform: 'translateY(0)' },
-                            '50%': { transform: 'translateY(-6px)' }
-                        },
-                        waveAnim: {
-                            '0%, 100%': { height: '8px' },
-                            '50%': { height: '32px' }
+                        greenhouse: {
+                            green: '#729C51',
+                            greenLight: '#8bb966',
+                            orange: '#EB5011',
+                            blue: '#C7E0ED',
+                            dark: '#0A0909',
                         }
                     }
                 }
@@ -94,2552 +47,870 @@
     </script>
 
     <style>
-        /* Hardware Acceleration & GPU Compositing for Smooth Mobile Experience */
-        * {
-            -webkit-tap-highlight-color: transparent;
+        body {
+            background-image: url('bg_farm.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
         }
 
-        /* Cyberpunk & Futuristic HUD Styling */
-        .hud-glass-dark {
-            background: linear-gradient(135deg, rgba(15, 23, 42, 0.92) 0%, rgba(11, 17, 32, 0.98) 100%);
-            border: 1px solid rgba(0, 255, 157, 0.18);
-            box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.35);
-            transform: translateZ(0);
-            backface-visibility: hidden;
+        /* Glassmorphism Window (Image 1 Style) */
+        .glass-window {
+            background: rgba(255, 255, 255, 0.78);
+            border: 1px solid rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.12);
         }
-        .hud-glass-dark:hover {
-            border-color: rgba(0, 255, 157, 0.35);
-        }
-
-        .hud-glass-light {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.96) 0%, rgba(240, 253, 244, 0.98) 100%);
-            border: 1px solid rgba(16, 185, 129, 0.22);
-            box-shadow: 0 4px 18px -2px rgba(16, 185, 129, 0.12);
-            transform: translateZ(0);
-            backface-visibility: hidden;
-        }
-        .hud-glass-light:hover {
-            border-color: rgba(16, 185, 129, 0.4);
+        .dark .glass-window {
+            background: rgba(10, 9, 9, 0.85);
+            border-color: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 25px 70px -15px rgba(0, 0, 0, 0.6);
         }
 
-        /* Enable backdrop blur only on high-end desktop screens */
-        @media (min-width: 769px) {
-            .hud-glass-dark {
-                background: linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(11, 17, 32, 0.95) 100%);
-                backdrop-filter: blur(12px);
-                -webkit-backdrop-filter: blur(12px);
-            }
-            .hud-glass-light {
-                background: linear-gradient(135deg, rgba(255, 255, 255, 0.92) 0%, rgba(240, 253, 244, 0.95) 100%);
-                backdrop-filter: blur(12px);
-                -webkit-backdrop-filter: blur(12px);
-            }
+        /* Bento Cards */
+        .bento-card {
+            background: rgba(255, 255, 255, 0.78);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            transition: all 0.25s ease;
+        }
+        .dark .bento-card {
+            background: rgba(20, 20, 24, 0.75);
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+        .bento-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+            border-color: rgba(114, 156, 81, 0.35);
         }
 
-        /* Mobile specific optimizations */
-        @media (max-width: 768px) {
-            .glow-text-emerald, .glow-text-cyan {
-                text-shadow: none !important;
-            }
-            .cyber-grid-bg {
-                background-size: 48px 48px;
-            }
-            header {
-                backdrop-filter: none !important;
-                -webkit-backdrop-filter: none !important;
-                background-color: rgba(11, 17, 32, 0.98) !important;
-            }
-        }
-
-        .hud-bracket {
-            position: relative;
-        }
-        .hud-bracket::before, .hud-bracket::after {
-            content: '';
-            position: absolute;
-            width: 8px;
-            height: 8px;
-            pointer-events: none;
-        }
-        .hud-bracket::before {
-            top: -1px; left: -1px;
-            border-top: 2px solid #00ff9d;
-            border-left: 2px solid #00ff9d;
-        }
-        .hud-bracket::after {
-            bottom: -1px; right: -1px;
-            border-bottom: 2px solid #00ff9d;
-            border-right: 2px solid #00ff9d;
-        }
-
-        .cyber-grid-bg {
-            background-image: 
-                linear-gradient(to right, rgba(0, 255, 157, 0.03) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(0, 255, 157, 0.03) 1px, transparent 1px);
-            background-size: 32px 32px;
-        }
-
-        .glow-text-emerald {
-            text-shadow: 0 0 12px rgba(0, 255, 157, 0.4);
-        }
-        .glow-text-cyan {
-            text-shadow: 0 0 12px rgba(0, 240, 255, 0.4);
-        }
-
-        /* Audio waveform dynamic bar styling */
-        .audio-wave-bar {
-            width: 4px;
-            background: #00ff9d;
-            border-radius: 4px;
-            transition: height 0.15s ease;
-        }
-        .audio-wave-bar.active {
-            animation: waveAnim 0.8s ease-in-out infinite alternate;
-        }
-
-        /* Custom scrollbar */
+        /* Custom Scrollbar */
         .custom-scrollbar::-webkit-scrollbar {
             width: 4px;
         }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: rgba(15, 23, 42, 0.5);
-        }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: rgba(0, 255, 157, 0.3);
-            border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: rgba(0, 255, 157, 0.6);
+            background: rgba(114, 156, 81, 0.35);
+            border-radius: 9999px;
         }
 
-        /* Shake animation for incorrect PIN */
-        @keyframes pinShake {
-            0%, 100% { transform: translateX(0); }
-            20%, 60% { transform: translateX(-8px); }
-            40%, 80% { transform: translateX(8px); }
-        }
-        .animate-shake {
-            animation: pinShake 0.4s ease-in-out;
+        /* Numerical Display Precision (GSAP Countup) */
+        #growth_rate_val {
+            font-variant-numeric: tabular-nums;
+            display: inline-block;
+            will-change: transform, opacity;
         }
     </style>
 </head>
-<body id="app_body" class="bg-space-950 text-slate-100 antialiased flex flex-col justify-between min-h-screen transition-colors duration-500 cyber-grid-bg">
+<body id="app_body" class="min-h-screen text-slate-800 dark:text-slate-100 antialiased p-2 sm:p-5 flex items-center justify-center">
 
-    <!-- TOP CYBER HUD HEADER -->
-    <header class="sticky top-0 z-40 bg-space-900/90 dark:bg-space-950/90 backdrop-blur-xl border-b border-emerald-500/20 shadow-lg shadow-black/40">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16 sm:h-20">
+    <!-- MAIN AI GREENHOUSE GLASS CONTAINER (Exact Mockup Mirror) -->
+    <div class="glass-window w-full max-w-[1440px] min-h-[92vh] rounded-[32px] p-4 sm:p-6 flex flex-col md:flex-row gap-5 relative overflow-hidden">
+        
+        <!-- LEFT VERTICAL FLOATING TOOLBAR DOCK -->
+        <aside class="bento-card w-full md:w-16 rounded-[28px] py-4 px-2.5 flex md:flex-col items-center justify-between shadow-xs shrink-0">
+            <!-- Subsystem Navigation Links -->
+            <div class="flex md:flex-col items-center gap-3.5 w-full justify-around md:justify-start">
                 
-                <!-- Left: Holographic Logo & System ID -->
-                <div class="flex items-center gap-3.5">
-                    <div class="relative group">
-                        <div class="absolute -inset-1 bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-2xl blur-xs opacity-75 group-hover:opacity-100 transition duration-300"></div>
-                        <div class="relative w-11 h-11 sm:w-13 sm:h-13 rounded-xl bg-space-900 border border-emerald-400/40 flex items-center justify-center text-neon-emerald shadow-inner">
-                            <i data-lucide="cpu" class="w-6 h-6 animate-pulse"></i>
-                        </div>
+                <!-- 1. Home / Overview (ACTIVE) -->
+                <a href="index.html" title="Dashboard Utama (Overview)" class="w-10 h-10 rounded-2xl flex items-center justify-center bg-[#729C51] text-white shadow-md shadow-[#729C51]/30 transition-all">
+                    <i data-lucide="sprout" class="w-5 h-5"></i>
+                </a>
+
+                <!-- 2. Pompa Irigasi (Dedicated HTML File) -->
+                <a href="pompa.html" title="Kontrol Pompa Irigasi" class="w-10 h-10 rounded-2xl flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
+                    <i data-lucide="droplet" class="w-5 h-5"></i>
+                </a>
+
+                <!-- 3. Jadwal Pemupukan (Dedicated HTML File) -->
+                <a href="pupuk.html" title="Jadwal Pemupukan Nutrisi" class="w-10 h-10 rounded-2xl flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
+                    <i data-lucide="calendar" class="w-5 h-5"></i>
+                </a>
+
+                <!-- 4. Monitoring Kelembapan (Dedicated HTML File) -->
+                <a href="kelembapan.html" title="Monitoring Kelembapan & Strata Tanah" class="w-10 h-10 rounded-2xl flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
+                    <i data-lucide="sliders" class="w-5 h-5"></i>
+                </a>
+
+                <!-- 5. Riwayat & Log (Dedicated HTML File) -->
+                <a href="analisis.html" title="Riwayat Telemetri & Analisis Cloud" class="w-10 h-10 rounded-2xl flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
+                    <i data-lucide="file-text" class="w-5 h-5"></i>
+                </a>
+
+                <!-- 6. Hash / Status Metrik -->
+                <button onclick="showToast('Sistem IoT SIRINTIS Cloud: Operasional Optimal')" title="Status Node Sensor" class="w-10 h-10 rounded-2xl flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer">
+                    <i data-lucide="hash" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Bottom Dock: Settings Gear & User Profile Avatar -->
+            <div class="hidden md:flex flex-col items-center gap-3">
+                <button onclick="toggleQuickSettings()" title="Pengaturan Sistem" class="w-9 h-9 rounded-full bg-white/70 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-[#729C51] cursor-pointer">
+                    <i data-lucide="settings" class="w-4 h-4"></i>
+                </button>
+                <div class="w-9 h-9 rounded-full overflow-hidden border-2 border-[#729C51] shadow-xs relative">
+                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80" alt="Avatar" class="w-full h-full object-cover">
+                    <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-white rounded-full"></span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN DASHBOARD CONTENT AREA -->
+        <main class="flex-1 flex flex-col gap-4 overflow-y-auto custom-scrollbar">
+            
+            <!-- TOP BAR (Exact Image 1 Header) -->
+            <header class="flex items-center justify-between gap-4 flex-wrap">
+                <!-- Brand Title -->
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center shadow-xs text-[#729C51]">
+                        <i data-lucide="sprout" class="w-5 h-5"></i>
                     </div>
                     <div>
-                        <h1 class="text-base sm:text-xl font-black tracking-wider text-white uppercase flex items-center gap-1.5">
-                            <span class="text-neon-emerald">Smart</span><span class="text-neon-cyan">Farming</span>
-                        </h1>
+                        <h1 class="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white tracking-tight">AI Greenhouse</h1>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400">SIRINTIS Smart Farming IoT Dashboard</p>
                     </div>
                 </div>
 
-                <!-- Right: Cyber Telemetry & Quick Action Hub -->
-                <div class="flex items-center gap-2 sm:gap-3">
+                <!-- Center: Rounded Pill Search Bar -->
+                <div class="w-full sm:w-72 lg:w-80 rounded-full bg-white/80 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 px-3.5 py-1.5 text-xs flex items-center justify-between shadow-xs">
+                    <div class="flex items-center gap-2 flex-1">
+                        <i data-lucide="search" class="w-4 h-4 text-slate-400"></i>
+                        <input type="text" id="dashboard_search" placeholder="Search..." onkeydown="handleSearch(event)"
+                            class="bg-transparent border-none focus:outline-none text-slate-700 dark:text-slate-200 text-xs w-full placeholder-slate-400">
+                    </div>
+                    <button onclick="triggerVoiceSearch()" title="Pencarian Suara" class="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-300 hover:text-[#729C51] cursor-pointer">
+                        <i data-lucide="mic" class="w-3.5 h-3.5"></i>
+                    </button>
+                </div>
+
+                <!-- Right Tool Buttons -->
+                <div class="flex items-center gap-2">
+                    <!-- Sensor Simulator / Test Drawer Toggle -->
+                    <button onclick="toggleSimPanel()" title="Uji Simulasi Sensor IoT" class="px-3 py-1.5 rounded-full bg-white/80 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-[#729C51] flex items-center gap-1.5 transition-all cursor-pointer shadow-xs">
+                        <i data-lucide="sliders" class="w-3.5 h-3.5 text-[#729C51]"></i>
+                        <span class="hidden sm:inline">Uji Sensor</span>
+                    </button>
+
+                    <!-- Glowing AI Assistant Button -->
+                    <button onclick="triggerAIAssistant()" class="px-4 py-2 rounded-full bg-gradient-to-r from-[#729C51] to-[#8bb966] text-white text-xs font-bold flex items-center gap-1.5 shadow-sm shadow-[#729C51]/30 hover:opacity-95 transition-all cursor-pointer">
+                        <i data-lucide="sparkles" class="w-4 h-4"></i>
+                        <span>AI Assistant</span>
+                    </button>
+
+                    <!-- Lamp / Quick Pump Trigger -->
+                    <button onclick="quickTogglePump()" title="Sakelar Cepat Pompa" class="w-9 h-9 rounded-full bg-white/80 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-[#729C51] transition-all cursor-pointer">
+                        <i id="quick_pump_bulb" data-lucide="lightbulb" class="w-4 h-4"></i>
+                    </button>
+
+                    <!-- Download Export -->
+                    <button onclick="window.location.href='analisis.html'" title="Ekspor Data Telemetri" class="w-9 h-9 rounded-full bg-white/80 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-[#729C51] transition-all cursor-pointer">
+                        <i data-lucide="download" class="w-4 h-4"></i>
+                    </button>
+
+                    <!-- Notifications -->
+                    <button onclick="showToast('Semua parameter tanaman dalam batas aman.')" title="Notifikasi" class="w-9 h-9 rounded-full bg-white/80 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-[#729C51] transition-all cursor-pointer">
+                        <i data-lucide="bell" class="w-4 h-4"></i>
+                    </button>
+
+                    <!-- Dark Theme Switch -->
+                    <button onclick="toggleTheme()" title="Ubah Tema" class="w-9 h-9 rounded-full bg-white/80 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-[#729C51] transition-all cursor-pointer">
+                        <i id="theme_icon" data-lucide="moon" class="w-4 h-4"></i>
+                    </button>
+
+                    <!-- Sun / Sync -->
+                    <button onclick="fetchLatestData()" title="Sinkronisasi Sensor RTDB" class="w-9 h-9 rounded-full bg-white/80 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-[#729C51] transition-all cursor-pointer relative">
+                        <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                        <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#729C51]"></span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- SIMULATION & TEST DRAWER (Untuk Uji Langsung Perubahan Angka di Overview) -->
+            <div id="sim_panel" class="hidden bento-card rounded-2xl p-3 flex flex-wrap items-center justify-between gap-3 text-xs border border-[#729C51]/30 bg-[#729C51]/5">
+                <div class="flex items-center gap-2">
+                    <span class="font-bold text-[#729C51] flex items-center gap-1.5">
+                        <i data-lucide="activity" class="w-4 h-4"></i>
+                        <span>Uji Simulasi Sensor:</span>
+                    </span>
+                    <span class="text-slate-500 dark:text-slate-400">Klik untuk langsung mengubah angka telemetri &amp; menyinkronkan ke RTDB:</span>
+                </div>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <!-- Presets Kelembapan -->
+                    <span class="text-[11px] font-semibold text-slate-500">Kelembapan:</span>
+                    <button onclick="setSimulationValue({ kelembapan: 28, status: 'Kering (ON)' })" class="px-2.5 py-1 rounded-lg bg-orange-500/15 text-orange-700 dark:text-orange-400 hover:bg-orange-500/25 font-bold cursor-pointer transition-all">28% Kering</button>
+                    <button onclick="setSimulationValue({ kelembapan: 55, status: 'Lembap (Optimal)' })" class="px-2.5 py-1 rounded-lg bg-[#729C51]/20 text-[#729C51] dark:text-[#8bb966] hover:bg-[#729C51]/30 font-bold cursor-pointer transition-all">55% Ideal</button>
+                    <button onclick="setSimulationValue({ kelembapan: 85, status: 'Basah (OFF)' })" class="px-2.5 py-1 rounded-lg bg-sky-500/15 text-sky-700 dark:text-sky-400 hover:bg-sky-500/25 font-bold cursor-pointer transition-all">85% Basah</button>
                     
-                    <!-- Latency & Link Quality -->
-                    <div class="hidden lg:flex items-center gap-3 px-3 py-1.5 rounded-xl bg-space-900/80 border border-slate-800 text-xs font-mono">
-                        <div class="flex items-center gap-1 text-slate-400">
-                            <i data-lucide="activity" class="w-3.5 h-3.5 text-cyan-400"></i>
-                            <span>RTT:</span>
-                            <span id="latency_metric" class="text-neon-cyan font-bold">-- ms</span>
-                        </div>
-                        <div class="h-3 w-px bg-slate-800"></div>
-                        <div class="flex items-center gap-1 text-slate-400">
-                            <i data-lucide="wifi" class="w-3.5 h-3.5 text-emerald-400"></i>
-                            <span id="rssi_metric" class="text-neon-emerald font-bold">-54 dBm</span>
-                        </div>
-                    </div>
-
-                    <!-- Live Firebase Status Pill -->
-                    <div id="connection_pill" class="flex items-center gap-2 px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold bg-emerald-950/60 text-neon-emerald border border-emerald-500/40 shadow-xs">
-                        <span class="relative flex h-2.5 w-2.5">
-                            <span id="ping_radar" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-neon-emerald opacity-75"></span>
-                            <span id="ping_dot" class="relative inline-flex rounded-full h-2.5 w-2.5 bg-neon-emerald"></span>
-                        </span>
-                        <span id="connection_text" class="tracking-wide">CLOUD LIVE</span>
-                    </div>
-
-                    <!-- Digital Cyber Clock -->
-                    <div class="hidden md:flex flex-col text-right font-mono">
-                        <span id="clock_time" class="text-xs font-black text-neon-cyan tracking-wider">00:00:00 WIB</span>
-                        <span id="clock_date" class="text-[10px] text-slate-400 uppercase">SYNCHRONIZING...</span>
-                    </div>
-
-
-                    <!-- AI Voice Assistant Toggle / Status Button (Header - Icon Only) -->
-                    <button id="btn_ai_voice_toggle" onclick="toggleAIVoiceAnnouncer()" title="Sakelar Suara Pembacaan AI Otomatis" class="p-2 sm:p-2.5 rounded-xl bg-space-900 hover:bg-space-800 border border-cyan-500/40 text-slate-300 hover:text-white transition-all shadow-md active:scale-95 cursor-pointer">
-                        <i id="ai_voice_icon" data-lucide="bot" class="w-4 h-4 text-neon-cyan"></i>
-                    </button>
-
-                    <!-- Quick Watering Music Status & Toggle Button (Header - Icon Only) -->
-                    <button id="btn_header_music" onclick="toggleWateringMusicSetting()" title="Sakelar Musik Penyiraman Otomatis" class="p-2 sm:p-2.5 rounded-xl bg-space-900 hover:bg-space-800 border border-emerald-500/40 text-slate-300 hover:text-white transition-all shadow-md active:scale-95 cursor-pointer">
-                        <i id="header_music_icon" data-lucide="music-2" class="w-4 h-4 text-neon-emerald"></i>
-                    </button>
-
-                    <!-- Audio Sound Effects Toggle -->
-                    <button id="btn_sound_toggle" onclick="toggleAudioFX()" title="Sakelar Efek Suara" class="p-2 sm:p-2.5 rounded-xl bg-space-900 hover:bg-space-800 border border-slate-700/80 text-slate-300 hover:text-neon-cyan transition-all active:scale-95 cursor-pointer">
-                        <i id="sound_icon" data-lucide="volume-2" class="w-4 h-4"></i>
-                    </button>
-
-                    <!-- Theme Toggle (Cyber Dark / Light Glass) -->
-                    <button onclick="toggleTheme()" title="Ubah Tema (Cyber Dark / Light)" class="p-2 sm:p-2.5 rounded-xl bg-space-900 hover:bg-space-800 border border-slate-700/80 text-slate-300 hover:text-amber-400 transition-all active:scale-95 cursor-pointer">
-                        <i id="theme_icon" data-lucide="moon" class="w-4 h-4 text-cyan-400"></i>
-                    </button>
-
-                    <!-- Manual Refresh / Sync -->
-                    <button onclick="fetchData(true)" title="Paksa Sinkronisasi Cloud" class="p-2 sm:p-2.5 rounded-xl bg-emerald-950/60 hover:bg-emerald-900/80 border border-emerald-500/50 text-neon-emerald hover:text-white transition-all active:scale-95 cursor-pointer shadow-xs">
-                        <i id="refresh_icon" data-lucide="refresh-cw" class="w-4 h-4"></i>
-                    </button>
+                    <div class="h-4 w-px bg-slate-300 dark:bg-slate-700 mx-1"></div>
+                    
+                    <!-- Pompa -->
+                    <span class="text-[11px] font-semibold text-slate-500">Pompa:</span>
+                    <button onclick="quickTogglePump()" id="sim_pump_btn" class="px-2.5 py-1 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold cursor-pointer transition-all">Toggle Pompa</button>
+                    
+                    <div class="h-4 w-px bg-slate-300 dark:bg-slate-700 mx-1"></div>
+                    
+                    <!-- Pupuk -->
+                    <span class="text-[11px] font-semibold text-slate-500">Pupuk:</span>
+                    <button onclick="setSimulationValue({ jadwal_pupuk: 7, jadwalPupuk: 7 })" class="px-2 py-1 rounded-lg bg-white/70 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-[#729C51] font-mono font-bold cursor-pointer">7H</button>
+                    <button onclick="setSimulationValue({ jadwal_pupuk: 14, jadwalPupuk: 14 })" class="px-2 py-1 rounded-lg bg-white/70 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-[#729C51] font-mono font-bold cursor-pointer">14H</button>
+                    <button onclick="setSimulationValue({ jadwal_pupuk: 29, jadwalPupuk: 29 })" class="px-2 py-1 rounded-lg bg-white/70 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-[#729C51] font-mono font-bold cursor-pointer">29H</button>
                 </div>
             </div>
-        </div>
-    </header>
 
-    <!-- SYSTEM ALERTS / ANNOUNCEMENT TICKER -->
-    <div id="system_ticker" class="bg-gradient-to-r from-emerald-950 via-space-900 to-cyan-950 border-b border-emerald-500/20 py-1.5 px-4 text-xs font-mono">
-        <div class="max-w-7xl mx-auto flex items-center justify-between text-slate-300">
-            <div class="flex items-center gap-2 truncate w-full">
-                <i data-lucide="info" class="w-3.5 h-3.5 text-neon-emerald shrink-0"></i>
-                <span id="ticker_text" class="text-slate-300 truncate">Sistem Irigasi Cerdas IoT NZ-27 beroperasi optimal. Pemutar musik penyiraman otomatis aktif.</span>
+            <!-- MAIN BENTO GRID (Layout Mirroring Image 1) -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                
+                <!-- 1. HERO INDOOR GREENHOUSE CARD (Spans 8 Cols on Large Screens) -->
+                <div class="lg:col-span-8 rounded-[28px] h-72 sm:h-84 relative overflow-hidden shadow-xs border border-white/80 dark:border-slate-800 flex items-center justify-center group">
+                    <!-- High-Res Indoor Hydroponic Crop Background -->
+                    <img src="greenhouse_crop.jpg" alt="Greenhouse Hydroponic Lettuce Crop" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                    
+                    <!-- Subtle Contrast Gradient Overlay -->
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-black/10"></div>
+
+                    <!-- Floating Frosted Glassmorphism Card: Harvest AI (Center) -->
+                    <div class="relative z-10 bento-card rounded-[24px] p-5 sm:p-6 min-w-[220px] sm:min-w-[260px] text-center shadow-lg flex flex-col items-center gap-3">
+                        <div class="w-full flex items-center justify-between text-slate-800 dark:text-slate-200">
+                            <div class="flex items-center gap-1.5 font-bold text-xs">
+                                <i data-lucide="sparkles" class="w-4 h-4 text-[#729C51]"></i>
+                                <span>Harvest AI</span>
+                            </div>
+                            <span id="harvest_kelembapan_badge" class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-[#729C51]/15 text-[#729C51] font-bold">81% Lembap</span>
+                        </div>
+
+                        <!-- Circular Progress Arc -->
+                        <div class="relative w-28 h-28 flex items-center justify-center">
+                            <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="40" stroke="currentColor" stroke-width="7" class="text-slate-200/80 dark:text-slate-700/80 fill-none" />
+                                <circle id="harvest_circle" cx="50" cy="50" r="40" stroke="#729C51" stroke-width="7" stroke-dasharray="251" stroke-dashoffset="50" stroke-linecap="round" class="fill-none transition-all duration-700" />
+                            </svg>
+                            <div class="absolute flex flex-col items-center justify-center">
+                                <span id="harvest_percent" class="text-2xl font-extrabold text-slate-900 dark:text-white font-mono">80%</span>
+                            </div>
+                        </div>
+
+                        <span id="harvest_status" class="text-xs font-semibold text-slate-600 dark:text-slate-300">Good Growth</span>
+                    </div>
+                </div>
+
+                <!-- 2. WATER FLOW CARD (Spans 4 Cols - Links to pompa.html) -->
+                <div class="lg:col-span-4 bento-card rounded-[28px] p-5 flex flex-col justify-between gap-3">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="droplet" class="w-4 h-4 text-[#729C51]"></i>
+                            <h3 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">Water Flow</h3>
+                        </div>
+                        <a href="pompa.html" title="Buka Kontrol Pompa" class="text-slate-400 hover:text-[#729C51]">
+                            <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
+                        </a>
+                    </div>
+
+                    <div>
+                        <div class="flex items-baseline gap-1.5">
+                            <span id="water_flow_val" class="text-3xl font-extrabold text-slate-900 dark:text-white font-mono tracking-tight">6.750</span>
+                            <span class="text-xs font-bold text-slate-400 font-mono">L</span>
+                        </div>
+                        <div class="text-[11px] text-slate-400 font-medium mt-0.5">
+                            <span id="water_pump_status">Siaga (Standby)</span> &bull; Laju: <span id="water_flow_rate">0.0 L/mnt</span>
+                        </div>
+                    </div>
+
+                    <!-- Vertical Green Bar Chart (Matching Image 1) -->
+                    <div class="h-28 w-full">
+                        <canvas id="waterFlowChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- 3. POWER CONSUMPTION CARD (Spans 4 Cols - Right Top 2) -->
+                <div class="lg:col-span-4 bento-card rounded-[28px] p-5 flex flex-col justify-between gap-3">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="zap" class="w-4 h-4 text-[#EB5011]"></i>
+                            <h3 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">Power Consumption</h3>
+                        </div>
+                        <a href="pompa.html" title="Detail Penggunaan Daya" class="text-slate-400 hover:text-[#EB5011]">
+                            <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
+                        </a>
+                    </div>
+
+                    <div>
+                        <div class="flex items-baseline gap-2">
+                            <span id="power_val" class="text-3xl font-extrabold text-slate-900 dark:text-white font-mono tracking-tight">144.2</span>
+                            <span class="text-xs font-bold text-slate-400 font-mono">kWh</span>
+                        </div>
+                        <div class="flex items-center gap-3 text-[10px] text-slate-500 font-medium mt-0.5">
+                            <span>Lighting: <strong class="text-slate-700 dark:text-slate-300">112 kWh</strong></span>
+                            <span>Pompa &amp; IoT: <strong id="power_other" class="text-slate-700 dark:text-slate-300">32.2 kWh</strong></span>
+                        </div>
+                    </div>
+
+                    <!-- Multi-colored hourly bar chart with orange & green bars -->
+                    <div class="h-28 w-full">
+                        <canvas id="powerChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- 4. BOTTOM 4 MINI SENSOR CARDS (Spans 4 Cols - 2x2 Grid) -->
+                <div class="lg:col-span-4 grid grid-cols-2 gap-3">
+                    
+                    <!-- Indoor Climate (Suhu) -->
+                    <a href="kelembapan.html" class="bento-card rounded-[24px] p-4 flex flex-col justify-between group cursor-pointer">
+                        <div class="flex items-center justify-between text-slate-400 group-hover:text-slate-700 dark:group-hover:text-white">
+                            <div class="flex items-center gap-1.5">
+                                <i data-lucide="thermometer" class="w-3.5 h-3.5 text-emerald-600"></i>
+                                <span class="text-[11px] font-bold text-slate-700 dark:text-slate-200">Indoor Climate</span>
+                            </div>
+                            <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
+                        </div>
+                        <div class="mt-2">
+                            <div class="flex items-baseline gap-1">
+                                <span id="temp_display" class="text-2xl font-extrabold text-slate-900 dark:text-white font-mono">26.8</span>
+                                <span class="text-sm font-bold text-slate-400 font-mono">°C</span>
+                            </div>
+                            <span id="temp_sub" class="text-[10px] text-slate-400 block mt-0.5">Suhu Greenhouse</span>
+                        </div>
+                    </a>
+
+                    <!-- Soil Moisture (Kelembapan Tanah) -->
+                    <a href="kelembapan.html" class="bento-card rounded-[24px] p-4 flex flex-col justify-between group cursor-pointer">
+                        <div class="flex items-center justify-between text-slate-400 group-hover:text-slate-700 dark:group-hover:text-white">
+                            <div class="flex items-center gap-1.5">
+                                <i data-lucide="droplets" class="w-3.5 h-3.5 text-teal-600"></i>
+                                <span class="text-[11px] font-bold text-slate-700 dark:text-slate-200">Soil Moisture</span>
+                            </div>
+                            <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
+                        </div>
+                        <div class="mt-2">
+                            <div class="flex items-baseline gap-1">
+                                <span id="soil_moisture_display" class="text-2xl font-extrabold text-slate-900 dark:text-white font-mono">81</span>
+                                <span class="text-sm font-bold text-slate-400 font-mono">%</span>
+                            </div>
+                            <span id="soil_status_sub" class="text-[10px] text-[#729C51] font-semibold block mt-0.5">Basah (OFF)</span>
+                        </div>
+                    </a>
+
+                    <!-- Air Humidity (Kelembapan Udara) -->
+                    <a href="kelembapan.html" class="bento-card rounded-[24px] p-4 flex flex-col justify-between group cursor-pointer">
+                        <div class="flex items-center justify-between text-slate-400 group-hover:text-slate-700 dark:group-hover:text-white">
+                            <div class="flex items-center gap-1.5">
+                                <i data-lucide="cloud-rain" class="w-3.5 h-3.5 text-sky-500"></i>
+                                <span class="text-[11px] font-bold text-slate-700 dark:text-slate-200">Air Humidity</span>
+                            </div>
+                            <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
+                        </div>
+                        <div class="mt-2">
+                            <div class="flex items-baseline gap-1">
+                                <span id="air_humidity_display" class="text-2xl font-extrabold text-slate-900 dark:text-white font-mono">68</span>
+                                <span class="text-sm font-bold text-slate-400 font-mono">%</span>
+                            </div>
+                            <span class="text-[10px] text-slate-400 block mt-0.5">RH Optimal (VPD 0.9)</span>
+                        </div>
+                    </a>
+
+                    <!-- EC & Jadwal Pupuk (Terkoneksi RTDB) -->
+                    <a href="pupuk.html" class="bento-card rounded-[24px] p-4 flex flex-col justify-between group cursor-pointer">
+                        <div class="flex items-center justify-between text-slate-400 group-hover:text-slate-700 dark:group-hover:text-white">
+                            <div class="flex items-center gap-1.5">
+                                <i data-lucide="calendar" class="w-3.5 h-3.5 text-amber-500"></i>
+                                <span class="text-[11px] font-bold text-slate-700 dark:text-slate-200">Siklus Pupuk</span>
+                            </div>
+                            <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
+                        </div>
+                        <div class="mt-2">
+                            <div class="flex items-baseline gap-1">
+                                <span id="jadwal_pupuk_display" class="text-2xl font-extrabold text-slate-900 dark:text-white font-mono">29</span>
+                                <span class="text-sm font-bold text-slate-400 font-mono">Hari</span>
+                            </div>
+                            <span class="text-[10px] text-slate-400 block mt-0.5">EC: <strong id="ec_display" class="text-slate-700 dark:text-slate-300">2.1 mS</strong> &bull; Terjadwal</span>
+                        </div>
+                    </a>
+
+                </div>
+
+                <!-- 5. GROWTH RATE CARD (Spans 4 Cols - Center Bottom) -->
+                <div class="lg:col-span-4 bento-card rounded-[28px] p-5 flex flex-col justify-between gap-3">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="trending-up" class="w-4 h-4 text-[#729C51]"></i>
+                            <h3 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">Growth Rate</h3>
+                        </div>
+                        <a href="kelembapan.html" title="Detail Pertumbuhan" class="text-slate-400 hover:text-[#729C51]">
+                            <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
+                        </a>
+                    </div>
+
+                    <div>
+                        <div id="growth_rate_val" class="text-3xl font-extrabold text-slate-900 dark:text-white font-mono tracking-tight">0.00</div>
+                        <div class="text-[11px] text-slate-400 font-medium mt-0.5">Indeks biomassa: <span id="growth_rate_status" class="font-semibold text-slate-700 dark:text-slate-200">0.81 Optimal</span> &bull; Lahan A</div>
+                    </div>
+
+                    <!-- Daily Bar Histogram with July Dates -->
+                    <div class="h-28 w-full">
+                        <canvas id="growthRateChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- 6. AIR CO2 CARD (Spans 4 Cols - Right Bottom) -->
+                <div class="lg:col-span-4 bento-card rounded-[28px] p-5 flex flex-col justify-between gap-3">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="wind" class="w-4 h-4 text-emerald-600"></i>
+                            <h3 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">Air CO₂</h3>
+                        </div>
+                        <a href="analisis.html" title="Detail CO2" class="text-slate-400 hover:text-emerald-600">
+                            <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
+                        </a>
+                    </div>
+
+                    <div>
+                        <div class="flex items-baseline gap-2">
+                            <span id="co2_val" class="text-3xl font-extrabold text-slate-900 dark:text-white font-mono tracking-tight">910</span>
+                            <span class="text-xs font-bold text-slate-400 font-mono">ppm</span>
+                        </div>
+                        <div class="text-[11px] text-slate-400 font-medium mt-0.5"><span id="co2_time">10:35 WIB</span> &bull; <span id="co2_sub">Sirkulasi baik</span></div>
+                    </div>
+
+                    <!-- Stepped Area Chart (Matching Image 1) -->
+                    <div class="h-28 w-full">
+                        <canvas id="co2Chart"></canvas>
+                    </div>
+                </div>
+
             </div>
-        </div>
+
+        </main>
     </div>
 
-    <!-- MAIN INTERACTIVE WORKSPACE -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex-1 w-full space-y-6">
-
-        <!-- 1. TOP TELEMETRY SNAPSHOT CARDS (CLEAN 4-COLUMN ROW) -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-            
-            <!-- 1. Kondisi & Status Tanah -->
-            <div class="hud-glass-dark rounded-2xl p-3.5 sm:p-4 transition-all border border-slate-800/80">
-                <div class="flex items-center justify-between mb-1.5">
-                    <span class="text-[11px] font-mono text-slate-400 uppercase tracking-wider">Kondisi Tanah</span>
-                    <span id="quick_soil_dot" class="w-2.5 h-2.5 rounded-full bg-neon-emerald animate-pulse"></span>
-                </div>
-                <div class="flex items-center gap-3">
-                    <div class="p-2 sm:p-2.5 rounded-xl bg-blue-500/10 text-cyan-400 border border-blue-500/20 shrink-0">
-                        <i data-lucide="droplets" class="w-5 h-5"></i>
-                    </div>
-                    <div class="min-w-0">
-                        <h4 id="quick_soil_status" class="text-base sm:text-lg font-black text-white font-mono tracking-tight truncate glow-text-cyan">Mendeteksi...</h4>
-                        <p id="quick_soil_desc" class="text-[10px] sm:text-[11px] text-slate-400 truncate">Sensor Kapasitif Terkalibrasi</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 2. Relay Pompa -->
-            <div class="hud-glass-dark rounded-2xl p-3.5 sm:p-4 transition-all border border-slate-800/80 hover:border-slate-700">
-                <div class="flex items-center justify-between mb-1.5">
-                    <span class="text-[11px] font-mono text-slate-400 uppercase tracking-wider">Relay Pompa</span>
-                    <span id="quick_pump_badge" class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 text-slate-400 border border-slate-700">STANDBY</span>
-                </div>
-                <div class="flex items-center gap-3">
-                    <button id="quick_pump_icon_wrap" onclick="toggleManual()" title="Klik untuk Mengubah Status Pompa (ON/OFF)" class="p-2 sm:p-2.5 rounded-xl bg-slate-800 hover:bg-emerald-950 text-slate-400 hover:text-neon-emerald border border-slate-700 hover:border-emerald-500/50 transition-all shrink-0 cursor-pointer active:scale-95 group shadow-sm">
-                        <i id="quick_pump_icon" data-lucide="power" class="w-5 h-5 group-hover:scale-110 transition-transform"></i>
-                    </button>
-                    <div class="min-w-0 flex-1 cursor-pointer group" onclick="toggleManual()" title="Klik untuk Mengubah Status Pompa (ON/OFF)">
-                        <h4 id="quick_pump_status" class="text-base sm:text-lg font-black text-white font-mono tracking-tight truncate group-hover:text-neon-emerald transition-colors">Mati (Siaga)</h4>
-                        <p id="quick_pump_mode" class="text-[10px] sm:text-[11px] text-slate-400 truncate group-hover:text-slate-300">Mode Otomatis (Klik untuk ON/OFF)</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 3. Siklus Nutrisi / Pupuk -->
-            <div class="hud-glass-dark rounded-2xl p-3.5 sm:p-4 transition-all border border-slate-800/80">
-                <div class="flex items-center justify-between mb-1.5">
-                    <span class="text-[11px] font-mono text-slate-400 uppercase tracking-wider">Siklus Pupuk</span>
-                    <span class="text-[10px] font-mono text-amber-400 font-bold">AUTOMATED</span>
-                </div>
-                <div class="flex items-center gap-3">
-                    <div class="p-2 sm:p-2.5 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20 shrink-0">
-                        <i data-lucide="calendar" class="w-5 h-5"></i>
-                    </div>
-                    <div class="min-w-0">
-                        <h4 id="quick_fertilizer_val" class="text-base sm:text-lg font-black text-white font-mono tracking-tight truncate">Setiap 6 Hari</h4>
-                        <p id="quick_fertilizer_next" class="text-[10px] sm:text-[11px] text-slate-400 truncate">Siklus nutrisi berikutnya</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 4. Estimasi Konsumsi Air -->
-            <div class="hud-glass-dark rounded-2xl p-3.5 sm:p-4 transition-all border border-slate-800/80">
-                <div class="flex items-center justify-between mb-1.5">
-                    <span class="text-[11px] font-mono text-slate-400 uppercase tracking-wider">Konsumsi Air</span>
-                    <span class="text-[10px] font-mono text-cyan-400 font-bold">ECO-FLOW</span>
-                </div>
-                <div class="flex items-center gap-3">
-                    <div class="p-2 sm:p-2.5 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 shrink-0">
-                        <i data-lucide="gauge-circle" class="w-5 h-5"></i>
-                    </div>
-                    <div class="min-w-0">
-                        <h4 id="quick_water_total" class="text-base sm:text-lg font-black text-white font-mono tracking-tight truncate glow-text-cyan">0.0 Liter</h4>
-                        <p id="quick_water_flow" class="text-[10px] sm:text-[11px] text-slate-400 truncate">Laju: 0.0 L/menit</p>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-        <!-- 2. MAIN 3-COLUMN SMART CONTROLLERS -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-            <!-- CARD 1: SOIL MOISTURE TELEMETRY & GAUGE -->
-            <div class="hud-glass-dark hud-bracket rounded-3xl p-5 sm:p-6 shadow-xl flex flex-col justify-between relative overflow-hidden transition-all border border-slate-800/80">
-                <div class="flex items-center justify-between pb-3.5 border-b border-slate-800">
-                    <div class="flex items-center gap-3">
-                        <div class="p-2.5 bg-blue-500/10 border border-blue-500/30 text-cyan-400 rounded-xl">
-                            <i data-lucide="gauge" class="w-5 h-5"></i>
-                        </div>
-                        <div>
-                            <h2 class="font-black text-white text-base tracking-wide uppercase">Kelembapan Tanah</h2>
-                            <p class="text-xs text-slate-400 font-mono">Analog Capacitive Sensor</p>
-                        </div>
-                    </div>
-                    <span id="moisture_badge" class="px-2.5 py-1 text-[10px] font-mono font-bold rounded-full bg-cyan-950/80 text-neon-cyan border border-cyan-500/40">
-                        LIVE TELEMETRY
-                    </span>
-                </div>
-
-                <!-- Circular Cyber-Gauge -->
-                <div class="py-4 flex flex-col items-center justify-center relative">
-                    <div class="relative w-44 h-44 sm:w-48 sm:h-48 flex items-center justify-center">
-                        <div class="absolute inset-0 rounded-full border border-dashed border-emerald-500/20 animate-spin-slow"></div>
-                        <svg class="w-full h-full transform -rotate-90" viewBox="0 0 140 140">
-                            <circle cx="70" cy="70" r="58" class="text-slate-800/80" stroke-width="12" stroke="currentColor" fill="transparent" />
-                            <circle cx="70" cy="70" r="58" class="text-slate-700/30" stroke-width="12" stroke-dasharray="2, 6" stroke="currentColor" fill="transparent" />
-                            <circle id="moisture_circle" cx="70" cy="70" r="58" class="text-neon-emerald transition-all duration-700 ease-out" 
-                                stroke-width="12" 
-                                stroke-dasharray="364.42" 
-                                stroke-dashoffset="364.42" 
-                                stroke-linecap="round" 
-                                stroke="currentColor" 
-                                fill="transparent" />
-                        </svg>
-
-                        <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
-                            <span class="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest">SOIL SATURATION</span>
-                            <span id="moisture_val" class="text-4xl sm:text-5xl font-black text-white font-mono tracking-tight glow-text-emerald">--%</span>
-                            <div class="mt-1 flex items-center gap-1.5">
-                                <span id="status_pill_dot" class="w-2 h-2 rounded-full bg-neon-emerald animate-ping"></span>
-                                <span id="status_val" class="text-[11px] font-mono font-bold text-neon-emerald px-2 py-0.5 rounded bg-emerald-950/80 border border-emerald-500/30">Memuat...</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Moisture Category Spectrum Bar -->
-                    <div class="w-full mt-3 bg-slate-900 rounded-full h-2 flex overflow-hidden p-0.5 border border-slate-800">
-                        <div class="w-1/3 bg-amber-500 rounded-l-full" title="Kering (0-35%)"></div>
-                        <div class="w-1/3 bg-neon-emerald" title="Ideal (36-70%)"></div>
-                        <div class="w-1/3 bg-cyan-500 rounded-r-full" title="Basah (71-100%)"></div>
-                    </div>
-                    <div class="w-full flex justify-between text-[10px] font-mono text-slate-400 mt-1 font-bold">
-                        <span class="text-amber-400">0% KERING</span>
-                        <span class="text-neon-emerald">IDEAL (36-70%)</span>
-                        <span class="text-cyan-400">100% BASAH</span>
-                    </div>
-                </div>
-
-                <!-- Mini Realtime Sparkline Chart -->
-                <div class="pt-3 border-t border-slate-800">
-                    <div class="flex items-center justify-between text-xs text-slate-400 mb-1.5 font-mono">
-                        <span class="font-bold text-white flex items-center gap-1.5 text-[11px]">
-                            <i data-lucide="trending-up" class="w-3.5 h-3.5 text-neon-emerald"></i> HISTORI KELEMBAPAN
-                        </span>
-                        <span id="moisture_trend_val" class="text-[10px] text-neon-cyan">LIVE BUFFER</span>
-                    </div>
-                    <div class="h-16 w-full">
-                        <canvas id="moistureChart"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <!-- CARD 2: PUMP RELAY CONTROLLER & WATERING MUSIC -->
-            <div class="hud-glass-dark hud-bracket rounded-3xl p-5 sm:p-6 shadow-xl flex flex-col justify-between relative overflow-hidden transition-all border border-slate-800/80">
-                <div class="flex items-center justify-between pb-3.5 border-b border-slate-800">
-                    <div class="flex items-center gap-3">
-                        <div class="p-2.5 bg-emerald-500/10 border border-emerald-500/30 text-neon-emerald rounded-xl">
-                            <i data-lucide="sliders" class="w-5 h-5"></i>
-                        </div>
-                        <div>
-                            <h2 class="font-black text-white text-base tracking-wide uppercase">Kontrol Pompa</h2>
-                            <p class="text-xs text-slate-400 font-mono">Solid-State Relay Control</p>
-                        </div>
-                    </div>
-                    <span id="pump_mode_badge" class="px-2.5 py-1 text-[10px] font-mono font-bold rounded-full bg-slate-800 text-slate-300 border border-slate-700">
-                        MODE OTOMATIS
-                    </span>
-                </div>
-
-                <!-- Pump Status Hologram (Clickable Power Switch) -->
-                <div class="py-3 flex flex-col items-center text-center">
-                    <div class="relative mb-2.5">
-                        <div id="pump_wave_effect" class="hidden absolute -inset-2.5 rounded-full bg-neon-emerald/20 blur-md animate-pulse"></div>
-                        <button id="pump_avatar_container" onclick="toggleManual()" title="Klik untuk Mengubah Status Pompa (ON/OFF)" class="w-20 h-20 rounded-2xl bg-space-900 border-2 border-slate-700 text-slate-500 hover:border-emerald-500/60 hover:text-slate-300 flex items-center justify-center transition-all duration-500 relative shadow-xl cursor-pointer hover:scale-105 active:scale-95 group">
-                            <i id="pump_main_icon" data-lucide="power" class="w-9 h-9 transition-transform duration-500 group-hover:scale-110"></i>
-                            <div id="pump_active_gears" class="hidden absolute inset-0 flex items-center justify-center pointer-events-none">
-                                <i data-lucide="cog" class="w-16 h-16 text-white/10 animate-spin-slow"></i>
-                            </div>
-                        </button>
-                    </div>
-
-                    <h3 id="pump_headline" class="text-base font-black text-white font-mono tracking-tight mb-0.5">Pompa Nonaktif (Siaga)</h3>
-                    <p id="pump_description" class="text-[11px] text-slate-400 max-w-xs leading-relaxed font-sans">
-                        Relay OFF. Otomatis menyiram jika kelembapan &lt;35%.
-                    </p>
-
-                    <!-- Active Watering Elapsed Time & Volume Indicator -->
-                    <div id="pump_active_timer_box" class="hidden mt-2 px-3 py-1 bg-emerald-950/80 border border-emerald-500/50 rounded-xl text-neon-emerald text-xs font-mono font-bold flex items-center gap-2.5 animate-pulse shadow-md">
-                        <i data-lucide="timer" class="w-3.5 h-3.5 text-neon-emerald"></i>
-                        <span>DURASI: <strong id="pump_running_timer" class="text-white">00:00</strong></span>
-                        <span class="text-emerald-500/50">|</span>
-                        <span>AIR: <strong id="pump_live_liters" class="text-neon-cyan">0.0 L</strong></span>
-                    </div>
-                </div>
-
-                <!-- Integrated Watering Music Controller -->
-                <div id="watering_music_card" class="p-3 bg-space-950/80 rounded-2xl border border-emerald-500/20 space-y-2">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2">
-                            <div id="music_orb_halo" class="w-2 h-2 rounded-full bg-neon-emerald"></div>
-                            <i id="main_music_indicator_icon" data-lucide="music-2" class="w-3.5 h-3.5 text-neon-emerald"></i>
-                            <span class="text-[11px] font-mono font-bold text-white uppercase">Musik Penyiraman</span>
-                        </div>
-                        <span id="music_state_badge" class="px-2 py-0.5 rounded text-[9px] font-mono font-bold bg-emerald-950 text-neon-emerald border border-emerald-500/30">
-                            AUTO-PLAY
-                        </span>
-                    </div>
-
-                    <!-- Main Priority Track: JNN.mp3 -->
-                    <div class="space-y-1.5">
-                        <button type="button" onclick="selectMusicTrack('jnn_track')" id="track_btn_jnn_track" class="w-full p-2 rounded-xl bg-emerald-950/90 border-2 border-emerald-400 text-white flex items-center justify-between text-left cursor-pointer transition-all shadow-md shadow-emerald-950/60">
-                            <div class="flex items-center gap-2 truncate">
-                                <div class="w-6 h-6 rounded-lg bg-emerald-500/20 text-neon-emerald border border-emerald-400/40 flex items-center justify-center shrink-0">
-                                    <i data-lucide="disc-3" class="w-3.5 h-3.5 animate-spin-slow"></i>
-                                </div>
-                                <div class="truncate">
-                                    <div class="text-[11px] font-mono font-black text-white flex items-center gap-1.5 truncate">
-                                        <span>jnn.mp3</span>
-                                        <span class="text-[8px] px-1 py-0.2 rounded bg-neon-emerald text-space-950 font-black tracking-wider uppercase">UTAMA</span>
-                                    </div>
-                                    <p class="text-[9px] font-mono text-emerald-300/80 truncate">Musik Tema Utama Penyiraman</p>
-                                </div>
-                            </div>
-                            <span id="track_active_badge_jnn" class="text-[9px] font-mono text-neon-emerald font-bold shrink-0 ml-2">AKTIF</span>
-                        </button>
-
-                        <!-- Secondary Procedural Ambient Themes -->
-                        <div class="grid grid-cols-2 gap-1.5 text-[10px] font-mono">
-                            <button type="button" onclick="selectMusicTrack('garden_harmony')" id="track_btn_garden_harmony" class="p-1.5 rounded-lg bg-space-900 border border-slate-800 text-slate-400 hover:text-white flex items-center gap-1.5 text-left cursor-pointer transition-all">
-                                <i data-lucide="sprout" class="w-3 h-3 text-neon-emerald shrink-0"></i>
-                                <span class="truncate">Harmoni Kebun</span>
-                            </button>
-                            <button type="button" onclick="selectMusicTrack('lofi_watering')" id="track_btn_lofi_watering" class="p-1.5 rounded-lg bg-space-900 border border-slate-800 text-slate-400 hover:text-white flex items-center gap-1.5 text-left cursor-pointer transition-all">
-                                <i data-lucide="coffee" class="w-3 h-3 text-cyan-400 shrink-0"></i>
-                                <span class="truncate">Lo-Fi Irigasi</span>
-                            </button>
-                            <button type="button" onclick="selectMusicTrack('rain_stream')" id="track_btn_rain_stream" class="p-1.5 rounded-lg bg-space-900 border border-slate-800 text-slate-400 hover:text-white flex items-center gap-1.5 text-left cursor-pointer transition-all">
-                                <i data-lucide="cloud-rain" class="w-3 h-3 text-blue-400 shrink-0"></i>
-                                <span class="truncate">Hujan Alami</span>
-                            </button>
-                            <button type="button" onclick="selectMusicTrack('zen_ambient')" id="track_btn_zen_ambient" class="p-1.5 rounded-lg bg-space-900 border border-slate-800 text-slate-400 hover:text-white flex items-center gap-1.5 text-left cursor-pointer transition-all">
-                                <i data-lucide="sparkles" class="w-3 h-3 text-amber-400 shrink-0"></i>
-                                <span class="truncate">Zen Organic</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Music Auto, Volume, Upload & Preview Bar -->
-                    <div class="flex items-center justify-between pt-1 border-t border-slate-800/80 text-[11px] font-mono">
-                        <label class="flex items-center gap-1.5 text-slate-300 cursor-pointer text-[10px]">
-                            <input type="checkbox" id="check_auto_music" checked onchange="toggleAutoMusicCheckbox(this.checked)" class="accent-emerald-500 w-3.5 h-3.5 rounded">
-                            <span>Auto-Play ON</span>
-                        </label>
-
-                        <div class="flex items-center gap-2">
-                            <!-- Custom MP3 File Selector Button -->
-                            <label for="custom_audio_file_input" title="Muat file audio MP3 kustom dari perangkat" class="px-2 py-0.5 rounded bg-space-900 hover:bg-space-800 border border-slate-700 text-[10px] font-mono text-slate-300 hover:text-cyan-400 transition-all cursor-pointer flex items-center gap-1">
-                                <i data-lucide="upload" class="w-3 h-3"></i>
-                                <span>File</span>
-                            </label>
-                            <input type="file" id="custom_audio_file_input" accept="audio/*" onchange="handleCustomAudioUpload(event)" class="hidden">
-
-                            <input type="range" id="slider_music_volume" min="0" max="100" value="60" oninput="handleMusicVolumeChange(this.value)" class="w-12 accent-emerald-500 cursor-pointer h-1.5" title="Volume Musik">
-                            
-                            <button onclick="toggleMusicPreview()" id="btn_preview_music" class="px-2 py-0.5 rounded bg-space-900 hover:bg-space-800 border border-emerald-500/30 text-[10px] font-mono text-neon-emerald hover:text-white transition-all cursor-pointer flex items-center gap-1">
-                                <i id="btn_preview_icon" data-lucide="play" class="w-3 h-3"></i>
-                                <span id="btn_preview_text">Uji</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Status & Cloud Sync Bar -->
-                <div class="pt-2">
-                    <div class="flex items-center justify-between text-[11px] font-mono text-slate-400 px-1 py-1 bg-space-950/60 rounded-xl border border-slate-800">
-                        <span class="flex items-center gap-1 text-neon-emerald">
-                            <i data-lucide="shield-check" class="w-3.5 h-3.5"></i> Fail-safe 5m
-                        </span>
-                        <span id="pump_cloud_status" class="text-neon-cyan font-bold">ONLINE SYNC</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- CARD 3: FERTILIZER SCHEDULER & NUTRIENT CYCLE -->
-            <div class="hud-glass-dark hud-bracket rounded-3xl p-5 sm:p-6 shadow-xl flex flex-col justify-between relative overflow-hidden transition-all border border-slate-800/80">
-                <div class="flex items-center justify-between pb-3.5 border-b border-slate-800">
-                    <div class="flex items-center gap-3">
-                        <div class="p-2.5 bg-amber-500/10 border border-amber-500/30 text-amber-400 rounded-xl">
-                            <i data-lucide="calendar-clock" class="w-5 h-5"></i>
-                        </div>
-                        <div>
-                            <h2 class="font-black text-white text-base tracking-wide uppercase">Jadwal Pupuk</h2>
-                            <p class="text-xs text-slate-400 font-mono">Siklus Injeksi Nutrisi</p>
-                        </div>
-                    </div>
-                    <span class="px-2.5 py-1 text-[10px] font-mono font-bold rounded-full bg-amber-950/80 text-amber-400 border border-amber-500/40">
-                        NUTRIENT RTDB
-                    </span>
-                </div>
-
-                <!-- Interval Adjuster -->
-                <div class="py-3 space-y-3">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs text-slate-300 font-sans">Interval Pemupukan:</span>
-                        <!-- Unit Switcher -->
-                        <div class="flex items-center bg-space-950 p-0.5 rounded-lg border border-slate-800 text-[10px] font-mono">
-                            <button type="button" onclick="setFertilizerUnit('hours')" id="btn_unit_hours" class="px-1.5 py-0.5 rounded text-slate-400 hover:text-white transition-all cursor-pointer">JAM</button>
-                            <button type="button" onclick="setFertilizerUnit('days')" id="btn_unit_days" class="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 font-bold border border-amber-500/30 transition-all cursor-pointer">HARI</button>
-                            <button type="button" onclick="setFertilizerUnit('weeks')" id="btn_unit_weeks" class="px-1.5 py-0.5 rounded text-slate-400 hover:text-white transition-all cursor-pointer">MINGGU</button>
-                        </div>
-                    </div>
-
-                    <!-- Digital Stepper -->
-                    <div class="bg-space-950/80 p-3 rounded-2xl border border-slate-800 space-y-2">
-                        <div class="flex items-center justify-center gap-3">
-                            <button onclick="adjustPupuk(-1)" type="button" class="w-9 h-9 rounded-xl bg-space-900 hover:bg-space-800 border border-slate-700 flex items-center justify-center text-amber-400 font-bold active:scale-95 transition-all cursor-pointer">
-                                <i data-lucide="minus" class="w-4 h-4"></i>
-                            </button>
-                            
-                            <div class="flex items-baseline gap-1">
-                                <input type="number" id="input_pupuk" min="1" max="365" value="6" oninput="onPupukInputChange(this.value)"
-                                    class="w-20 text-center text-3xl font-black text-white font-mono bg-transparent border-b border-amber-500/40 focus:border-amber-400 focus:outline-none p-0.5">
-                                <span id="label_pupuk_unit" class="text-xs font-mono font-bold text-amber-400 uppercase">HARI</span>
-                            </div>
-
-                            <button onclick="adjustPupuk(1)" type="button" class="w-9 h-9 rounded-xl bg-space-900 hover:bg-space-800 border border-slate-700 flex items-center justify-center text-amber-400 font-bold active:scale-95 transition-all cursor-pointer">
-                                <i data-lucide="plus" class="w-4 h-4"></i>
-                            </button>
-                        </div>
-
-                        <!-- Smooth Slider -->
-                        <div class="pt-1 px-1">
-                            <input type="range" id="slider_pupuk" min="1" max="30" value="6" oninput="onPupukSliderChange(this.value)" 
-                                class="w-full accent-amber-500 cursor-pointer bg-slate-800 h-1.5 rounded-lg">
-                            <div class="flex justify-between text-[9px] font-mono text-slate-400 mt-0.5">
-                                <span id="slider_min_label">1 Hari</span>
-                                <span id="slider_mid_label">15 Hari</span>
-                                <span id="slider_max_label">30 Hari</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Quick Preset Badges -->
-                    <div class="grid grid-cols-5 gap-1 font-mono text-center">
-                        <button onclick="setPresetPupuk(1, 'days')" type="button" class="py-1 text-[10px] font-bold rounded-lg bg-space-900 hover:bg-amber-950 hover:text-amber-300 text-slate-300 border border-slate-800 transition-all cursor-pointer">1 H</button>
-                        <button onclick="setPresetPupuk(3, 'days')" type="button" class="py-1 text-[10px] font-bold rounded-lg bg-space-900 hover:bg-amber-950 hover:text-amber-300 text-slate-300 border border-slate-800 transition-all cursor-pointer">3 H</button>
-                        <button onclick="setPresetPupuk(7, 'days')" type="button" class="py-1 text-[10px] font-bold rounded-lg bg-space-900 hover:bg-amber-950 hover:text-amber-300 text-slate-300 border border-slate-800 transition-all cursor-pointer">7 H</button>
-                        <button onclick="setPresetPupuk(14, 'days')" type="button" class="py-1 text-[10px] font-bold rounded-lg bg-space-900 hover:bg-amber-950 hover:text-amber-300 text-slate-300 border border-slate-800 transition-all cursor-pointer">14 H</button>
-                        <button onclick="setPresetPupuk(30, 'days')" type="button" class="py-1 text-[10px] font-bold rounded-lg bg-space-900 hover:bg-amber-950 hover:text-amber-300 text-slate-300 border border-slate-800 transition-all cursor-pointer">30 H</button>
-                    </div>
-
-                    <!-- Forecast Card -->
-                    <div class="p-2.5 bg-amber-950/30 border border-amber-500/20 rounded-xl text-[11px] font-mono flex items-center justify-between text-slate-300">
-                        <span class="text-slate-400">Jadwal Berikutnya:</span>
-                        <span id="fertilizer_forecast_date" class="text-amber-400 font-bold">--</span>
-                    </div>
-                </div>
-
-                <!-- Save Action -->
-                <div class="space-y-1.5 pt-2">
-                    <button id="btn_simpan_pupuk" onclick="simpanJadwalPupuk()" class="w-full flex items-center justify-center gap-2 py-3 px-4 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 active:scale-[0.98] text-white font-mono font-bold text-xs tracking-wider uppercase rounded-2xl shadow-lg shadow-amber-600/20 border border-amber-400/30 transition-all cursor-pointer">
-                        <i data-lucide="save" class="w-3.5 h-3.5"></i>
-                        <span>SIMPAN JADWAL PUPUK</span>
-                    </button>
-                    
-                    <div class="h-4 flex items-center justify-center">
-                        <p id="status_simpan" class="text-[11px] font-mono font-bold transition-all text-center"></p>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-        <!-- 3. BOTTOM SECTION: FIELD VISUALIZER CANVAS & TELEMETRY EVENT STREAM -->
-        <div class="space-y-6">
-            
-            <!-- Field Visualizer & Simulator Canvas -->
-            <div class="hud-glass-dark hud-bracket rounded-3xl p-5 sm:p-6 shadow-xl relative overflow-hidden transition-all border border-slate-800/80">
-                <div class="flex items-center justify-between pb-3.5 border-b border-slate-800">
-                    <div class="flex items-center gap-3">
-                        <div class="p-2 bg-emerald-500/10 border border-emerald-500/30 text-neon-emerald rounded-xl">
-                            <i data-lucide="radar" class="w-5 h-5 animate-spin-slow"></i>
-                        </div>
-                        <div>
-                            <h2 class="text-sm sm:text-base font-black tracking-wide text-white uppercase">Visualizer Lapangan & Irigasi</h2>
-                            <p class="text-[11px] text-slate-400">Dinamika partikel air tanah & nozel penyemprot presisi</p>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center gap-2">
-                        <button onclick="toggleSimulatorMode()" id="btn_sim_toggle" class="flex items-center gap-1.5 px-3 py-1.5 bg-space-800 hover:bg-space-700 text-slate-300 hover:text-white rounded-xl text-xs font-mono border border-slate-700 transition-all cursor-pointer">
-                            <i data-lucide="flask-conical" class="w-3.5 h-3.5 text-amber-400"></i>
-                            <span id="sim_toggle_label">Mode Uji Coba</span>
-                        </button>
-                        <button onclick="exportDataLogs()" class="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-950/60 hover:bg-emerald-900/60 text-neon-emerald rounded-xl text-xs font-mono border border-emerald-500/40 transition-all cursor-pointer">
-                            <i data-lucide="download" class="w-3.5 h-3.5"></i>
-                            <span>Ekspor Log</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Canvas Stage -->
-                <div class="relative w-full h-44 sm:h-52 mt-4 rounded-2xl bg-space-950/90 border border-emerald-500/20 overflow-hidden">
-                    <canvas id="farmCanvas" class="w-full h-full block"></canvas>
-                    
-                    <div class="absolute top-3 left-3 flex flex-col sm:flex-row gap-2 pointer-events-none font-mono text-[10px]">
-                        <div class="px-2.5 py-1 rounded-lg bg-space-900/80 border border-emerald-500/30 text-neon-emerald backdrop-blur-md flex items-center gap-1.5 shadow-sm">
-                            <span class="w-1.5 h-1.5 rounded-full bg-neon-emerald animate-ping"></span>
-                            <span>SOIL SATURATION: <strong id="canvas_moisture_val">--%</strong></span>
-                        </div>
-                        <div class="px-2.5 py-1 rounded-lg bg-space-900/80 border border-cyan-500/30 text-neon-cyan backdrop-blur-md flex items-center gap-1.5 shadow-sm">
-                            <span>FLOW RATE: <strong id="canvas_flow_val">0.0 L/min</strong></span>
-                        </div>
-                    </div>
-
-                    <div class="absolute bottom-3 right-3 flex items-center gap-2 pointer-events-none font-mono text-[10px] text-slate-300 bg-space-900/80 px-2.5 py-1 rounded-lg border border-slate-800 backdrop-blur-md">
-                        <span class="text-neon-emerald">●</span> Partikel Air
-                        <span class="text-cyan-400 ml-1">●</span> Nozel Spray Aktif
-                    </div>
-                </div>
-
-                <!-- Hardware Simulator Controller Drawer (Expandable) -->
-                <div id="simulator_controls" class="hidden mt-3 p-3.5 rounded-2xl bg-space-900/95 border border-amber-500/30 space-y-3 font-mono text-xs animate-fadeIn">
-                    <div class="flex items-center justify-between text-amber-400 font-bold text-[11px]">
-                        <span class="flex items-center gap-1.5">
-                            <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5"></i>
-                            PANEL SIMULASI & KALIBRASI SENSOR IoT
-                        </span>
-                        <span id="sim_status_tag" class="text-[9px] text-slate-400">Firebase RTDB Override</span>
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-                        <div class="space-y-1">
-                            <div class="flex justify-between text-slate-300 text-[11px]">
-                                <span>Nilai Kelembapan:</span>
-                                <strong id="sim_slider_val" class="text-neon-emerald">45%</strong>
-                            </div>
-                            <input type="range" id="sim_moisture_slider" min="0" max="100" value="45" oninput="handleSimSliderChange(this.value)" class="w-full accent-emerald-500 cursor-pointer h-1.5">
-                            <div class="flex justify-between text-[9px] text-slate-500 pt-0.5">
-                                <button onclick="setSimPreset(0)" class="hover:text-rose-400 font-bold text-rose-400/80">Kering 0%</button>
-                                <button onclick="setSimPreset(20)" class="hover:text-amber-400">Kering 20%</button>
-                                <button onclick="setSimPreset(55)" class="hover:text-emerald-400">Ideal 55%</button>
-                                <button onclick="setSimPreset(85)" class="hover:text-cyan-400">Basah 85%</button>
-                            </div>
-                        </div>
-
-                        <div class="space-y-1">
-                            <span class="text-slate-300 text-[11px]">Kirim ke Cloud:</span>
-                            <div class="flex gap-1.5">
-                                <button onclick="pushSimulatedMoisture()" class="flex-1 py-1.5 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-lg text-[10px] transition-all text-center">
-                                    PUSH KE CLOUD
-                                </button>
-                                <button onclick="autoSimulateRain()" class="px-2 py-1.5 bg-space-800 hover:bg-space-700 text-cyan-400 border border-cyan-500/40 rounded-lg text-[10px]">
-                                    Simulasi Hujan
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="space-y-1">
-                            <span class="text-slate-300 text-[11px]">Ambang Auto-Siram:</span>
-                            <div class="flex items-center gap-1.5">
-                                <input type="number" id="auto_threshold_input" min="10" max="80" value="35" class="w-16 bg-space-950 border border-slate-700 text-center text-white py-1 rounded-lg font-bold text-xs">
-                                <span class="text-slate-400 text-[10px]">% (Pemicu)</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Telemetry Logs Event Stream -->
-            <div class="hud-glass-dark rounded-2xl p-5 shadow-xl font-mono border border-slate-800/80">
-                <div class="flex items-center justify-between mb-3 pb-2.5 border-b border-slate-800">
-                    <div class="flex items-center gap-2 text-white font-bold text-xs uppercase tracking-wide">
-                        <i data-lucide="terminal" class="w-4 h-4 text-neon-emerald"></i>
-                        <span>IoT Event Stream</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="text-[9px] text-neon-emerald animate-pulse font-bold">● LIVE</span>
-                        <button onclick="clearActivityLogs()" class="text-[10px] text-slate-400 hover:text-white hover:underline cursor-pointer">
-                            Clear
-                        </button>
-                    </div>
-                </div>
-                <div id="activity_log_container" class="space-y-1.5 max-h-48 overflow-y-auto custom-scrollbar pr-1 text-[11px]">
-                    <div class="flex items-center justify-between p-2 rounded-lg bg-space-950/80 border border-slate-800/80 text-slate-300">
-                        <div class="flex items-center gap-2 truncate">
-                            <span class="w-1.5 h-1.5 rounded-full bg-neon-emerald shrink-0"></span>
-                            <span class="truncate">[INIT] Smart Farming Station Online. Sensor & cloud sync aktif.</span>
-                        </div>
-                        <span class="text-[9px] text-slate-500 ml-1 shrink-0">ONLINE</span>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-    </main>
-
-    <!-- FOOTER WITH TEAM CREDITS -->
-    <footer class="bg-space-900/90 dark:bg-space-950/90 border-t border-emerald-500/20 mt-8 py-6 shadow-2xl">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex flex-col md:flex-row items-center justify-between gap-4">
-                
-                <!-- Group Info -->
-                <div class="flex items-center gap-3 text-center md:text-left">
-                    <div class="w-10 h-10 rounded-2xl bg-emerald-950 text-neon-emerald border border-emerald-500/40 flex items-center justify-center font-mono font-black text-sm shadow-inner">
-                        12F11
-                    </div>
-                    <div>
-                        <h4 class="text-sm font-bold text-white tracking-wide">Kelompok 2 &bull; Smart Farming IoT Project</h4>
-                        <p class="text-xs text-slate-400">Sistem Otomasi Pemantauan Kelembapan dan Irigasi Cerdas</p>
-                    </div>
-                </div>
-
-                <!-- Team Members Interactive Badges -->
-                <div class="flex flex-wrap items-center justify-center gap-1.5 font-mono text-xs">
-                    <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full font-bold bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md shadow-emerald-600/30 border border-emerald-400/40">
-                        <i data-lucide="crown" class="w-3.5 h-3.5 text-amber-300"></i>
-                        Nezar Rizki A.H (Ketua)
-                    </span>
-                    <span class="inline-flex items-center px-3 py-1.5 rounded-full font-medium bg-space-900 text-slate-300 border border-slate-800 hover:border-emerald-500/40 transition-colors">Alfira</span>
-                    <span class="inline-flex items-center px-3 py-1.5 rounded-full font-medium bg-space-900 text-slate-300 border border-slate-800 hover:border-emerald-500/40 transition-colors">Atsani</span>
-                    <span class="inline-flex items-center px-3 py-1.5 rounded-full font-medium bg-space-900 text-slate-300 border border-slate-800 hover:border-emerald-500/40 transition-colors">Danu</span>
-                    <span class="inline-flex items-center px-3 py-1.5 rounded-full font-medium bg-space-900 text-slate-300 border border-slate-800 hover:border-emerald-500/40 transition-colors">Natifa</span>
-                    <span class="inline-flex items-center px-3 py-1.5 rounded-full font-medium bg-space-900 text-slate-300 border border-slate-800 hover:border-emerald-500/40 transition-colors">Rijal</span>
-                </div>
-
-            </div>
-        </div>
-    </footer>
-
-    <!-- FUTURISTIC CYBER TOAST NOTIFICATION CONTAINER -->
-    <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none flex items-center gap-3.5 px-5 py-3.5 bg-space-900/95 border border-emerald-500/50 text-white rounded-2xl shadow-2xl backdrop-blur-xl text-xs font-mono">
-        <i id="toast_icon" data-lucide="check-circle" class="w-5 h-5 text-neon-emerald"></i>
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toast" class="fixed top-6 right-6 z-50 transform -translate-y-12 opacity-0 transition-all duration-300 pointer-events-none flex items-center gap-2.5 px-4 py-2.5 bg-slate-900 text-white rounded-2xl shadow-xl text-xs font-medium">
+        <i id="toast_icon" data-lucide="check-circle" class="w-4 h-4 text-[#729C51]"></i>
         <span id="toast_message">Notifikasi</span>
     </div>
 
     <!-- JAVASCRIPT APPLICATION CORE -->
     <script>
-        // ==========================================
-        // FIREBASE INITIALIZATION (OFFICIAL SDK WEBSOCKET)
-        // ==========================================
+        // Firebase Config
         const firebaseConfig = {
-            apiKey: "AIzaSyD-dummy-key-for-config-only",
-            authDomain: "ai-studio-penyiramnz27-ad64f0d4-5ab4-4ebf-8e1f-382494aa3ec2.firebaseapp.com",
-            projectId: "ai-studio-penyiramnz27-ad64f0d4-5ab4-4ebf-8e1f-382494aa3ec2",
-            storageBucket: "ai-studio-penyiramnz27-ad64f0d4-5ab4-4ebf-8e1f-382494aa3ec2.firebasestorage.app",
-            messagingSenderId: "835709588881",
-            appId: "1:835709588881:web:7a8b9c0d1e2f3a4b5c6d7e",
             databaseURL: "https://smart-watering-nz-default-rtdb.asia-southeast1.firebasedatabase.app"
         };
-
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const rtdb = firebase.database();
         const penyiramRef = rtdb.ref('penyiram');
 
-        const RTDB_BASE_URL = "https://smart-watering-nz-default-rtdb.asia-southeast1.firebasedatabase.app/penyiram";
+        let isPumpOn = false;
+        let lastMoisture = 55;
+        let isAISpeaking = false;
+        let baseWaterLiters = 6.750;
+        let pumpWaterAccumulator = 0;
+        let pumpFlowInterval = null;
 
-        let isManual = false;
-        let lastMoisture = null;
-        let lastManualState = null;
-        let pumpStartTime = null;
-        let pumpTimerInterval = null;
-        let totalWaterLiters = 0;
-        let isSimulatorOpen = false;
-        let soundEnabled = true;
-        let chartInstance = null;
-        const moistureHistory = [];
-        const timeHistory = [];
-        let hasSuccessfulConnection = false;
-        let lastDataReceivedTime = Date.now();
-
-        // Last Fertilizer and Debounce state
-        let lastFertilizerAdjustTime = 0;
-        let autoSaveFertilizerTimer = null;
-
-        // ==========================================
-        // OPERATOR PERMISSIONS & ACCESS STATUS
-        // ==========================================
-        let isOperatorUnlocked = true;
-        let loggedInOperatorName = 'Kelompok 2';
-
-        // ==========================================
-        // WATERING MUSIC ENGINE & PROCEDURAL HARMONICS
-        // ==========================================
-        let isWateringMusicAuto = true;
-        let isMusicPlaying = false;
-        let musicVolume = 0.6;
-        let currentTrackKey = 'jnn_track';
-        let musicTimer = null;
-        let musicGainNode = null;
-        let musicStep = 0;
-        let jnnAudioElement = null;
-
-        const MUSIC_TRACKS = {
-            jnn_track: {
-                id: "jnn_track",
-                title: "🎵 jnn.mp3 - Melodi Utama Irigasi",
-                desc: "Musik tema irigasi utama (jnn.mp3) mengiringi semprotan air presisi pada tanaman.",
-                badge: "jnn.mp3 (Utama)",
-                fileSrc: "jnn.mp3",
-                bpm: 90,
-                notes: [
-                    [261.63, 329.63, 392.00, 523.25], // Cmaj
-                    [220.00, 261.63, 329.63, 440.00], // Am7
-                    [174.61, 261.63, 329.63, 349.23], // Fmaj7
-                    [196.00, 293.66, 392.00, 493.88]  // Gsus4
-                ]
-            },
-            garden_harmony: {
-                title: "🌿 Harmoni Alam Kebun",
-                desc: "Melodi santai menenangkan mengiringi semprotan air irigasi tanaman.",
-                badge: "Harmoni Alam Kebun",
-                bpm: 78,
-                notes: [
-                    [261.63, 329.63, 392.00, 523.25], // Cmaj
-                    [220.00, 261.63, 329.63, 440.00], // Am7
-                    [174.61, 261.63, 329.63, 349.23], // Fmaj7
-                    [196.00, 293.66, 392.00, 493.88]  // Gsus4
-                ]
-            },
-            lofi_watering: {
-                title: "☕ Lo-Fi Irigasi Chill",
-                desc: "Irama beat santai modern yang rileks untuk menyegarkan tanaman.",
-                badge: "Lo-Fi Irigasi Chill",
-                bpm: 68,
-                notes: [
-                    [293.66, 349.23, 440.00, 523.25], // Dm9
-                    [196.00, 293.66, 392.00, 440.00], // G9
-                    [261.63, 329.63, 392.00, 493.88], // Cmaj7
-                    [220.00, 261.63, 329.63, 392.00]  // Am7
-                ]
-            },
-            rain_stream: {
-                title: "🌧️ Gemericik Air & Hujan",
-                desc: "Simfoni suara tetesan air alami, aliran irigasi, dan gemuruh hujan sejuk.",
-                badge: "Gemericik Air & Hujan",
-                bpm: 88,
-                notes: [
-                    [329.63, 392.00, 523.25, 659.25], // Em
-                    [261.63, 329.63, 392.00, 523.25], // Cmaj
-                    [293.66, 349.23, 440.00, 587.33], // Dm
-                    [196.00, 246.94, 293.66, 392.00]  // G
-                ]
-            },
-            zen_ambient: {
-                title: "🌌 Zen Organic Synth",
-                desc: "Alunan pad synthesizer ambient bernuansa organik kosmik yang syahdu.",
-                badge: "Zen Organic Synth",
-                bpm: 50,
-                notes: [
-                    [130.81, 196.00, 261.63, 392.00], // C low pad
-                    [110.00, 164.81, 220.00, 329.63], // A low pad
-                    [87.31, 130.81, 174.61, 261.63],  // F low pad
-                    [98.00, 146.83, 196.00, 293.66]   // G low pad
-                ]
-            }
-        };
-
-        function getJnnAudio() {
-            if (!jnnAudioElement) {
-                jnnAudioElement = new Audio('jnn.mp3');
-                jnnAudioElement.loop = true;
-                jnnAudioElement.preload = 'auto';
-                jnnAudioElement.volume = musicVolume;
-            }
-            return jnnAudioElement;
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast_message').innerText = message;
+            toast.classList.remove('-translate-y-12', 'opacity-0');
+            setTimeout(() => toast.classList.add('-translate-y-12', 'opacity-0'), 3200);
         }
 
-        // Audio Synthesis with Web Audio API (High-Tech Sound Effects & Music)
-        let audioCtx = null;
-        function getAudioContext() {
-            if (!audioCtx) {
-                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-                if (AudioContextClass) audioCtx = new AudioContextClass();
-            }
-            if (audioCtx && audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
-            return audioCtx;
+        // Toggle Simulation & Sensor Test Drawer
+        function toggleSimPanel() {
+            const panel = document.getElementById('sim_panel');
+            panel.classList.toggle('hidden');
+            lucide.createIcons();
         }
 
-        function playSciFiSound(type = 'click') {
-            if (!soundEnabled) return;
+        // Direct Simulation / Tester that writes to Firebase RTDB & updates UI instantly
+        async function setSimulationValue(patch) {
+            updateDashboardTelemetry(patch);
             try {
-                const ctx = getAudioContext();
-                if (!ctx) return;
-
-                if (type === 'click') {
-                    const osc = ctx.createOscillator();
-                    const gain = ctx.createGain();
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(800, ctx.currentTime);
-                    osc.frequency.exponentialRampToValueAtTime(1400, ctx.currentTime + 0.08);
-                    gain.gain.setValueAtTime(0.12, ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.08);
-                    osc.connect(gain);
-                    gain.connect(ctx.destination);
-                    osc.start();
-                    osc.stop(ctx.currentTime + 0.08);
-                } else if (type === 'pump_on') {
-                    const osc = ctx.createOscillator();
-                    const gain = ctx.createGain();
-                    osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(300, ctx.currentTime);
-                    osc.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + 0.25);
-                    gain.gain.setValueAtTime(0.15, ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
-                    osc.connect(gain);
-                    gain.connect(ctx.destination);
-                    osc.start();
-                    osc.stop(ctx.currentTime + 0.25);
-                } else if (type === 'alert') {
-                    const osc = ctx.createOscillator();
-                    const gain = ctx.createGain();
-                    osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(880, ctx.currentTime);
-                    osc.frequency.setValueAtTime(440, ctx.currentTime + 0.1);
-                    gain.gain.setValueAtTime(0.1, ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
-                    osc.connect(gain);
-                    gain.connect(ctx.destination);
-                    osc.start();
-                    osc.stop(ctx.currentTime + 0.25);
-                } else if (type === 'pin_key') {
-                    const osc = ctx.createOscillator();
-                    const gain = ctx.createGain();
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(950, ctx.currentTime);
-                    osc.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.05);
-                    gain.gain.setValueAtTime(0.08, ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
-                    osc.connect(gain);
-                    gain.connect(ctx.destination);
-                    osc.start();
-                    osc.stop(ctx.currentTime + 0.05);
-                } else if (type === 'pin_success') {
-                    [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
-                        const osc = ctx.createOscillator();
-                        const gain = ctx.createGain();
-                        osc.type = 'triangle';
-                        osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.08);
-                        gain.gain.setValueAtTime(0.1, ctx.currentTime + i * 0.08);
-                        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.08 + 0.2);
-                        osc.connect(gain);
-                        gain.connect(ctx.destination);
-                        osc.start(ctx.currentTime + i * 0.08);
-                        osc.stop(ctx.currentTime + i * 0.08 + 0.2);
-                    });
-                } else if (type === 'pin_error') {
-                    const osc = ctx.createOscillator();
-                    const gain = ctx.createGain();
-                    osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(220, ctx.currentTime);
-                    osc.frequency.setValueAtTime(180, ctx.currentTime + 0.12);
-                    gain.gain.setValueAtTime(0.15, ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
-                    osc.connect(gain);
-                    gain.connect(ctx.destination);
-                    osc.start();
-                    osc.stop(ctx.currentTime + 0.3);
-                }
+                await penyiramRef.update(patch);
+                showToast("Data telemetri berhasil diperbarui ke Cloud Firebase RTDB.");
             } catch (e) {
-                console.warn("Audio synth warning:", e);
+                console.error("Simulation RTDB update:", e);
             }
         }
 
-        // ==========================================
-        // WATERING MUSIC PLAYBACK ENGINE
-        // ==========================================
-        function startWateringMusic() {
-            if (!isWateringMusicAuto && !isManual) return;
-            if (isMusicPlaying) return;
-
+        // Quick Toggle Pump from header bulb or simulator
+        async function quickTogglePump() {
+            isPumpOn = !isPumpOn;
+            updatePumpVisual(isPumpOn);
             try {
-                const ctx = getAudioContext();
-                if (ctx && ctx.state === 'suspended') ctx.resume();
-
-                isMusicPlaying = true;
-                setMusicVisualizerState(true);
-
-                const track = MUSIC_TRACKS[currentTrackKey] || MUSIC_TRACKS.jnn_track;
-
-                if (currentTrackKey === 'jnn_track') {
-                    const audio = getJnnAudio();
-                    audio.volume = musicVolume;
-                    const playPromise = audio.play();
-                    if (playPromise !== undefined) {
-                        playPromise.catch(err => {
-                            console.log("Audio file auto-playback note:", err);
-                        });
-                    }
-                }
-
-                musicStep = 0;
-                playTrackStep();
-                clearInterval(musicTimer);
-                const intervalMs = Math.round((60 / (track.bpm || 80)) * 1000);
-                musicTimer = setInterval(playTrackStep, intervalMs);
-
-                updateMusicUI();
-            } catch (err) {
-                console.warn("Error starting watering music:", err);
-            }
-        }
-
-        function playTrackStep() {
-            if (!isMusicPlaying) return;
-            try {
-                const ctx = getAudioContext();
-                if (!ctx) return;
-
-                const track = MUSIC_TRACKS[currentTrackKey] || MUSIC_TRACKS.jnn_track;
-                const chordProgression = track.notes || [[261.63, 329.63, 392.00, 523.25]];
-                const chord = chordProgression[musicStep % chordProgression.length];
-                musicStep++;
-
-                if (!musicGainNode) {
-                    musicGainNode = ctx.createGain();
-                    musicGainNode.connect(ctx.destination);
-                }
-                // When jnn.mp3 audio file is active, synth acts as subtle backing ambience
-                const synthVolMultiplier = currentTrackKey === 'jnn_track' ? 0.05 : 0.15;
-                musicGainNode.gain.setValueAtTime(musicVolume * synthVolMultiplier, ctx.currentTime);
-
-                const filter = ctx.createBiquadFilter();
-                filter.type = 'lowpass';
-                filter.frequency.setValueAtTime(currentTrackKey === 'zen_ambient' ? 600 : 1800, ctx.currentTime);
-                filter.connect(musicGainNode);
-
-                chord.forEach((freq, idx) => {
-                    const osc = ctx.createOscillator();
-                    const noteGain = ctx.createGain();
-
-                    osc.type = currentTrackKey === 'zen_ambient' ? 'sine' : (idx === 0 ? 'triangle' : 'sine');
-                    osc.frequency.setValueAtTime(freq, ctx.currentTime + (idx * 0.08));
-
-                    const startTime = ctx.currentTime + (idx * 0.08);
-                    const duration = (60 / (track.bpm || 80)) * 1.8;
-
-                    noteGain.gain.setValueAtTime(0.0001, startTime);
-                    noteGain.gain.exponentialRampToValueAtTime(0.08, startTime + 0.1);
-                    noteGain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
-
-                    osc.connect(noteGain);
-                    noteGain.connect(filter);
-
-                    osc.start(startTime);
-                    osc.stop(startTime + duration);
-                });
-
-                // Extra subtle water droplet bubble for rain_stream / garden_harmony / jnn_track
-                if (currentTrackKey === 'rain_stream' || currentTrackKey === 'garden_harmony' || currentTrackKey === 'jnn_track') {
-                    const dropOsc = ctx.createOscillator();
-                    const dropGain = ctx.createGain();
-                    dropOsc.type = 'sine';
-                    const randomPitch = 800 + Math.random() * 800;
-                    dropOsc.frequency.setValueAtTime(randomPitch, ctx.currentTime + 0.2);
-                    dropOsc.frequency.exponentialRampToValueAtTime(randomPitch + 300, ctx.currentTime + 0.35);
-
-                    dropGain.gain.setValueAtTime(0.0001, ctx.currentTime + 0.2);
-                    dropGain.gain.exponentialRampToValueAtTime(0.03, ctx.currentTime + 0.24);
-                    dropGain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.35);
-
-                    dropOsc.connect(dropGain);
-                    dropGain.connect(musicGainNode);
-
-                    dropOsc.start(ctx.currentTime + 0.2);
-                    dropOsc.stop(ctx.currentTime + 0.36);
-                }
+                await penyiramRef.update({ manual: isPumpOn });
+                showToast(isPumpOn ? "Pompa irigasi dinyalakan (ON)" : "Pompa irigasi dimatikan (STANDBY)");
             } catch (e) {
-                console.warn("Music step synthesis error:", e);
+                console.error(e);
             }
         }
 
-        function stopWateringMusic() {
-            if (!isMusicPlaying) return;
-            isMusicPlaying = false;
-            if (jnnAudioElement) {
-                try {
-                    jnnAudioElement.pause();
-                    jnnAudioElement.currentTime = 0;
-                } catch (e) {}
-            }
-            clearInterval(musicTimer);
-            musicTimer = null;
-            setMusicVisualizerState(false);
-            updateMusicUI();
-        }
-
-        function setMusicVisualizerState(active) {
-            const waveBox = document.getElementById('music_waveform_box');
-            const bars = waveBox ? waveBox.querySelectorAll('.audio-wave-bar') : [];
-            const orbHalo = document.getElementById('music_orb_halo');
-            const mainIcon = document.getElementById('main_music_indicator_icon');
+        function updatePumpVisual(active) {
+            isPumpOn = active;
+            const bulb = document.getElementById('quick_pump_bulb');
+            const flowVal = document.getElementById('water_flow_val');
+            const pumpStatus = document.getElementById('water_pump_status');
+            const flowRate = document.getElementById('water_flow_rate');
+            const simBtn = document.getElementById('sim_pump_btn');
+            const powerOther = document.getElementById('power_other');
+            const powerTotal = document.getElementById('power_val');
 
             if (active) {
-                bars.forEach(bar => {
-                    bar.classList.add('bg-neon-emerald', 'animate-pulse');
-                    bar.style.height = `${Math.floor(Math.random() * 16) + 8}px`;
-                });
-                if (orbHalo) orbHalo.classList.add('animate-pulse');
-                if (mainIcon) mainIcon.classList.add('animate-spin-slow', 'text-neon-cyan');
+                if (bulb) bulb.className = "w-4 h-4 text-[#729C51] animate-pulse";
+                if (pumpStatus) {
+                    pumpStatus.innerText = "Pompa ON (Menyiram)";
+                    pumpStatus.className = "text-[#729C51] font-bold";
+                }
+                if (flowRate) {
+                    flowRate.innerText = "2.4 L/mnt";
+                    flowRate.className = "text-[#729C51] font-bold";
+                }
+                if (simBtn) {
+                    simBtn.innerText = "Pompa: ON";
+                    simBtn.className = "px-2.5 py-1 rounded-lg bg-[#729C51] text-white font-bold cursor-pointer transition-all";
+                }
+                if (powerOther) powerOther.innerText = "34.8 kWh (Aktif)";
+                if (powerTotal) powerTotal.innerText = "146.8";
+
+                if (!pumpFlowInterval) {
+                    pumpFlowInterval = setInterval(() => {
+                        pumpWaterAccumulator += 0.04;
+                        const cur = (baseWaterLiters + pumpWaterAccumulator).toFixed(3);
+                        if (flowVal) flowVal.innerText = cur;
+                    }, 1000);
+                }
             } else {
-                bars.forEach((bar, i) => {
-                    bar.classList.remove('bg-neon-emerald', 'animate-pulse');
-                    bar.style.height = `${(i % 3 + 2) * 3}px`;
-                });
-                if (orbHalo) orbHalo.classList.remove('animate-pulse');
-                if (mainIcon) mainIcon.classList.remove('animate-spin-slow', 'text-neon-cyan');
+                if (bulb) bulb.className = "w-4 h-4 text-slate-500";
+                if (pumpStatus) {
+                    pumpStatus.innerText = "Siaga (Standby)";
+                    pumpStatus.className = "text-slate-400 font-medium";
+                }
+                if (flowRate) {
+                    flowRate.innerText = "0.0 L/mnt";
+                    flowRate.className = "text-slate-400 font-medium";
+                }
+                if (simBtn) {
+                    simBtn.innerText = "Pompa: OFF";
+                    simBtn.className = "px-2.5 py-1 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold cursor-pointer transition-all";
+                }
+                if (powerOther) powerOther.innerText = "32.2 kWh";
+                if (powerTotal) powerTotal.innerText = "144.2";
+
+                if (pumpFlowInterval) {
+                    clearInterval(pumpFlowInterval);
+                    pumpFlowInterval = null;
+                }
+                if (flowVal) flowVal.innerText = (baseWaterLiters + pumpWaterAccumulator).toFixed(3);
             }
         }
 
-        function updateMusicUI() {
-            const track = MUSIC_TRACKS[currentTrackKey] || MUSIC_TRACKS.jnn_track;
-            const stateBadge = document.getElementById('music_state_badge');
-            const previewBtnText = document.getElementById('btn_preview_text');
-            const previewBtnIcon = document.getElementById('btn_preview_icon');
-            const pumpMusicBox = document.getElementById('pump_active_music_box');
-            const pumpSongTitle = document.getElementById('pump_playing_song_title');
-            const headerMusicLabel = document.getElementById('header_music_label');
-            const headerMusicIcon = document.getElementById('header_music_icon');
+        // Subtle GSAP Countup Animation for Growth Rate Numerical Display
+        let currentGrowthRateVal = 0.00;
+        let isInitialGrowthRateAnimated = false;
 
-            if (isMusicPlaying) {
-                if (stateBadge) {
-                    stateBadge.innerText = "▶ SEDANG MEMUTAR: " + (track.badge || "MUSIK");
-                    stateBadge.className = "px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-cyan-950/90 text-neon-cyan border border-cyan-400 shadow-xs animate-pulse";
-                }
-                if (previewBtnText) previewBtnText.innerText = "Hentikan";
-                if (previewBtnIcon) previewBtnIcon.setAttribute('data-lucide', 'square');
-                if (pumpMusicBox) pumpMusicBox.classList.remove('hidden');
-                if (pumpSongTitle) pumpSongTitle.innerText = track.badge;
-                if (headerMusicLabel) headerMusicLabel.innerText = "MUSIK: ON";
-                if (headerMusicIcon) headerMusicIcon.className = "w-4 h-4 text-neon-cyan animate-spin-slow";
+        function animateGrowthRate(target, duration = 1.4) {
+            const el = document.getElementById('growth_rate_val');
+            if (!el) return;
+            const targetVal = typeof target === 'number' ? target : parseFloat(target) || 0;
+            
+            if (window.gsap) {
+                const proxy = { val: currentGrowthRateVal };
+                gsap.to(proxy, {
+                    val: targetVal,
+                    duration: duration,
+                    ease: "power2.out",
+                    onUpdate: () => {
+                        el.innerText = proxy.val.toFixed(2);
+                    },
+                    onComplete: () => {
+                        currentGrowthRateVal = targetVal;
+                        el.innerText = targetVal.toFixed(2);
+                    }
+                });
+
+                gsap.fromTo(el, 
+                    { scale: 0.94, opacity: 0.7 },
+                    { scale: 1.0, opacity: 1.0, duration: duration * 0.7, ease: "power2.out" }
+                );
             } else {
-                if (stateBadge) {
-                    if (isWateringMusicAuto) {
-                        stateBadge.innerText = "AUTO-PLAY ON (" + (track.badge || "jnn.mp3") + ")";
-                        stateBadge.className = "px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-950/80 text-neon-emerald border border-emerald-500/40 shadow-xs";
+                const start = currentGrowthRateVal;
+                const diff = targetVal - start;
+                const startTime = performance.now();
+                const animDuration = duration * 1000;
+                function step(now) {
+                    const elapsed = now - startTime;
+                    const progress = Math.min(elapsed / animDuration, 1);
+                    const ease = 1 - Math.pow(1 - progress, 3);
+                    const current = start + diff * ease;
+                    el.innerText = current.toFixed(2);
+                    if (progress < 1) {
+                        requestAnimationFrame(step);
                     } else {
-                        stateBadge.innerText = "AUTO-PLAY OFF";
-                        stateBadge.className = "px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-slate-900 text-slate-400 border border-slate-700";
+                        currentGrowthRateVal = targetVal;
+                        el.innerText = targetVal.toFixed(2);
                     }
                 }
-                if (previewBtnText) previewBtnText.innerText = "Uji";
-                if (previewBtnIcon) previewBtnIcon.setAttribute('data-lucide', 'play');
-                if (pumpMusicBox) pumpMusicBox.classList.add('hidden');
-                if (headerMusicLabel) headerMusicLabel.innerText = isWateringMusicAuto ? "MUSIK: AKTIF" : "MUSIK: OFF";
-                if (headerMusicIcon) headerMusicIcon.className = isWateringMusicAuto ? "w-4 h-4 text-neon-emerald" : "w-4 h-4 text-slate-500";
-            }
-            lucide.createIcons();
-        }
-
-        function toggleMusicPreview() {
-            if (isMusicPlaying) {
-                stopWateringMusic();
-                showToast("Musik irigasi dihentikan");
-            } else {
-                startWateringMusic();
-                showToast(`Memutar preview: ${MUSIC_TRACKS[currentTrackKey]?.title || 'Musik'}`);
+                requestAnimationFrame(step);
             }
         }
 
-        function handleCustomAudioUpload(event) {
-            const file = event.target.files && event.target.files[0];
-            if (!file) return;
+        // Master Telemetry Updater: Updates ALL numbers in Overview reactively
+        function updateDashboardTelemetry(data) {
+            if (!data) return;
+
+            // 1. Kelembapan Tanah (Moisture)
+            if (data.kelembapan !== undefined) {
+                const moisture = Number(data.kelembapan);
+                lastMoisture = moisture;
+
+                // Soil Moisture Card
+                const elSoil = document.getElementById('soil_moisture_display');
+                if (elSoil) elSoil.innerText = moisture;
+
+                const elSoilSub = document.getElementById('soil_status_sub');
+                if (elSoilSub) {
+                    const statusText = data.status || (moisture < 35 ? "Kering (ON)" : (moisture <= 70 ? "Lembap (Optimal)" : "Basah (OFF)"));
+                    elSoilSub.innerText = statusText;
+                    if (moisture < 35) {
+                        elSoilSub.className = "text-[10px] text-[#EB5011] font-semibold block mt-0.5";
+                    } else if (moisture <= 70) {
+                        elSoilSub.className = "text-[10px] text-[#729C51] font-semibold block mt-0.5";
+                    } else {
+                        elSoilSub.className = "text-[10px] text-sky-600 dark:text-sky-400 font-semibold block mt-0.5";
+                    }
+                }
+
+                // Harvest AI Circular Arc & Dynamic Biological Growth Calculation
+                // Peak optimal photosynthesis at 55% moisture
+                const deviation = Math.abs(moisture - 55);
+                const calculatedGrowth = Math.max(20, Math.min(98, Math.round(98 - (deviation * 1.05))));
+
+                const elHarvest = document.getElementById('harvest_percent');
+                if (elHarvest) elHarvest.innerText = `${calculatedGrowth}%`;
+
+                const elCircle = document.getElementById('harvest_circle');
+                if (elCircle) {
+                    const circumference = 251;
+                    const offset = circumference - (calculatedGrowth / 100) * circumference;
+                    elCircle.style.strokeDashoffset = offset;
+                    if (calculatedGrowth >= 75) {
+                        elCircle.setAttribute('stroke', '#729C51');
+                    } else if (calculatedGrowth >= 50) {
+                        elCircle.setAttribute('stroke', '#C7E0ED');
+                    } else {
+                        elCircle.setAttribute('stroke', '#EB5011');
+                    }
+                }
+
+                const elHarvestStatus = document.getElementById('harvest_status');
+                if (elHarvestStatus) {
+                    elHarvestStatus.innerText = calculatedGrowth >= 80 ? 'Good Growth' : (calculatedGrowth >= 60 ? 'Pertumbuhan Stabil' : 'Perlu Perhatian');
+                }
+
+                const elBadge = document.getElementById('harvest_kelembapan_badge');
+                if (elBadge) {
+                    elBadge.innerText = `${moisture}% ${moisture < 35 ? 'Kering' : (moisture <= 70 ? 'Lembap' : 'Basah')}`;
+                }
+
+                // Growth Rate Numeric Display (Smooth Countup)
+                const targetGrowthRate = parseFloat((calculatedGrowth / 100).toFixed(2));
+                animateGrowthRate(targetGrowthRate, isInitialGrowthRateAnimated ? 0.8 : 1.4);
+                isInitialGrowthRateAnimated = true;
+
+                const elGrowthStatus = document.getElementById('growth_rate_status');
+                if (elGrowthStatus) {
+                    elGrowthStatus.innerText = `${targetGrowthRate.toFixed(2)} ${calculatedGrowth >= 80 ? 'Optimal' : (calculatedGrowth >= 60 ? 'Stabil' : 'Kritis')}`;
+                }
+
+                // Realistic correlated Indoor Temperature & Air Humidity
+                const calculatedTemp = (25.4 + (55 - moisture) * 0.04).toFixed(1);
+                const elTemp = document.getElementById('temp_display');
+                if (elTemp) elTemp.innerText = calculatedTemp;
+
+                const calculatedAirHum = Math.min(92, Math.max(45, Math.round(moisture * 0.75 + 18)));
+                const elAirHum = document.getElementById('air_humidity_display');
+                if (elAirHum) elAirHum.innerText = calculatedAirHum;
+
+                // Subtle dynamic CO2 fluctuation
+                const calculatedCO2 = Math.round(890 + (moisture * 0.35));
+                const elCO2 = document.getElementById('co2_val');
+                if (elCO2) elCO2.innerText = calculatedCO2;
+            }
+
+            // 2. Pompa Irigasi (Relay)
+            if (data.manual !== undefined) {
+                updatePumpVisual(data.manual === true);
+            }
+
+            // 3. Jadwal Pemupukan (Fertilizer Schedule)
+            const jadwal = data.jadwal_pupuk !== undefined ? data.jadwal_pupuk : data.jadwalPupuk;
+            if (jadwal !== undefined) {
+                const elJadwal = document.getElementById('jadwal_pupuk_display');
+                if (elJadwal) elJadwal.innerText = jadwal;
+
+                // Dynamic EC (Nutrisi) calculation based on schedule
+                const ec = (1.8 + (30 - Math.min(30, Number(jadwal))) * 0.025).toFixed(1);
+                const elEC = document.getElementById('ec_display');
+                if (elEC) elEC.innerText = ec;
+            }
+        }
+
+        // Dual-Channel Sync: Fast REST Polling Fallback
+        async function syncFromRest() {
             try {
-                const url = URL.createObjectURL(file);
-                const audio = getJnnAudio();
-                audio.src = url;
-                audio.load();
-                MUSIC_TRACKS.jnn_track.title = `🎵 ${file.name} (Custom)`;
-                MUSIC_TRACKS.jnn_track.badge = file.name;
-                selectMusicTrack('jnn_track');
-                showToast(`File musik '${file.name}' dimuat sebagai musik utama`);
+                const res = await fetch("https://smart-watering-nz-default-rtdb.asia-southeast1.firebasedatabase.app/penyiram.json");
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data) {
+                        updateDashboardTelemetry(data);
+                    }
+                }
             } catch (err) {
-                console.error("Error loading custom audio:", err);
+                console.warn("REST sync check:", err);
             }
         }
 
-        function selectMusicTrack(key) {
-            if (!MUSIC_TRACKS[key]) return;
-            currentTrackKey = key;
-            const track = MUSIC_TRACKS[key];
-
-            const titleEl = document.getElementById('current_track_title');
-            const descEl = document.getElementById('current_track_description');
-            const badgeEl = document.getElementById('current_track_badge');
-            if (titleEl) titleEl.innerHTML = `<span>${track.title}</span>`;
-            if (descEl) descEl.innerText = track.desc;
-            if (badgeEl) badgeEl.innerText = track.badge;
-
-            // Update JNN Main Button UI
-            const jnnBtn = document.getElementById('track_btn_jnn_track');
-            const jnnActiveBadge = document.getElementById('track_active_badge_jnn');
-            if (jnnBtn) {
-                if (key === 'jnn_track') {
-                    jnnBtn.className = "w-full p-2 rounded-xl bg-emerald-950/90 border-2 border-emerald-400 text-white flex items-center justify-between text-left cursor-pointer transition-all shadow-md shadow-emerald-950/60";
-                    if (jnnActiveBadge) {
-                        jnnActiveBadge.innerText = "AKTIF";
-                        jnnActiveBadge.className = "text-[9px] font-mono text-neon-emerald font-bold shrink-0 ml-2";
-                    }
-                } else {
-                    jnnBtn.className = "w-full p-2 rounded-xl bg-space-900 hover:bg-space-850 border border-slate-800 text-slate-300 hover:text-white flex items-center justify-between text-left cursor-pointer transition-all";
-                    if (jnnActiveBadge) {
-                        jnnActiveBadge.innerText = "PILIH";
-                        jnnActiveBadge.className = "text-[9px] font-mono text-slate-500 font-bold shrink-0 ml-2";
-                    }
-                }
-            }
-
-            // Update Secondary Track Buttons UI
-            ['garden_harmony', 'lofi_watering', 'rain_stream', 'zen_ambient'].forEach(tKey => {
-                const btn = document.getElementById(`track_btn_${tKey}`);
-                if (btn) {
-                    if (tKey === key) {
-                        btn.className = "p-1.5 rounded-lg bg-emerald-950/70 border border-emerald-500/60 text-white flex items-center gap-1.5 text-left cursor-pointer transition-all";
-                    } else {
-                        btn.className = "p-1.5 rounded-lg bg-space-900 border border-slate-800 text-slate-400 hover:text-white flex items-center gap-1.5 text-left cursor-pointer transition-all";
-                    }
-                }
+        function fetchLatestData() {
+            syncFromRest().then(() => {
+                showToast(`Sinkronisasi Sensor RTDB Berhasil! Kelembapan: ${lastMoisture}%, Pompa: ${isPumpOn ? 'ON' : 'OFF'}`);
+                lucide.createIcons();
             });
-
-            playSciFiSound('click');
-            showToast(`Tema musik: ${track.badge}`);
-
-            if (isMusicPlaying) {
-                if (jnnAudioElement) {
-                    if (key === 'jnn_track') {
-                        jnnAudioElement.volume = musicVolume;
-                        jnnAudioElement.play().catch(e => console.log(e));
-                    } else {
-                        jnnAudioElement.pause();
-                        jnnAudioElement.currentTime = 0;
-                    }
-                }
-                clearInterval(musicTimer);
-                const intervalMs = Math.round((60 / (track.bpm || 80)) * 1000);
-                musicStep = 0;
-                playTrackStep();
-                musicTimer = setInterval(playTrackStep, intervalMs);
-            }
-            updateMusicUI();
         }
 
-        function toggleAutoMusicCheckbox(checked) {
-            isWateringMusicAuto = checked;
-            showToast(isWateringMusicAuto ? "Auto-play musik penyiraman diaktifkan" : "Auto-play musik penyiraman dinonaktifkan");
-            updateMusicUI();
-        }
+        // Firebase RTDB WebSocket Listener
+        penyiramRef.on('value', (snap) => {
+            const data = snap.val() || {};
+            updateDashboardTelemetry(data);
+        });
 
-        function toggleWateringMusicSetting() {
-            isWateringMusicAuto = !isWateringMusicAuto;
-            const checkbox = document.getElementById('check_auto_music');
-            if (checkbox) checkbox.checked = isWateringMusicAuto;
-            showToast(isWateringMusicAuto ? "Musik Penyiraman: Diaktifkan" : "Musik Penyiraman: Dinonaktifkan");
-            if (!isWateringMusicAuto && isMusicPlaying && !isManual) {
-                stopWateringMusic();
-            }
-            updateMusicUI();
-        }
+        // Background auto-refresh polling every 3.5 seconds
+        setInterval(syncFromRest, 3500);
 
-        function handleMusicVolumeChange(val) {
-            musicVolume = parseInt(val) / 100;
-            const display = document.getElementById('music_volume_display');
-            if (display) display.innerText = `${val}%`;
-            if (musicGainNode && audioCtx) {
-                musicGainNode.gain.setValueAtTime(musicVolume * (currentTrackKey === 'jnn_track' ? 0.05 : 0.15), audioCtx.currentTime);
-            }
-            if (jnnAudioElement) {
-                jnnAudioElement.volume = musicVolume;
-            }
-        }
-
-        // AI Voice Assistant & Speech Synthesis Engine
-        let isAIVoiceEnabled = true;
-        let isAISpeaking = false;
-        let lastSpokenText = '';
-        let lastAutoSpeechTime = 0;
-
-        function getIndonesianVoice() {
-            if (!('speechSynthesis' in window)) return null;
-            const voices = window.speechSynthesis.getVoices();
-            // Prioritize Indonesian voice or standard localized voice
-            const idVoice = voices.find(v => v.lang === 'id-ID' || v.lang === 'id_ID' || v.lang.startsWith('id'));
-            if (idVoice) return idVoice;
-            const msVoice = voices.find(v => v.lang.startsWith('ms'));
-            if (msVoice) return msVoice;
-            return voices[0] || null;
-        }
-
-        // Initialize voices when browser loads them
-        if ('speechSynthesis' in window) {
-            window.speechSynthesis.onvoiceschanged = () => {
-                getIndonesianVoice();
-            };
-        }
-
-        function playAIVoice(text, isAuto = false) {
-            if (!('speechSynthesis' in window)) {
-                if (!isAuto) showToast("Peramban Anda belum mendukung Web Speech API", "error");
-                return;
-            }
-            if (!isAIVoiceEnabled && isAuto) return;
-
-            // Prevent spamming identical automated voice prompts within 12 seconds
-            const now = Date.now();
-            if (isAuto && text === lastSpokenText && (now - lastAutoSpeechTime < 12000)) {
-                return;
-            }
-
-            try {
-                window.speechSynthesis.cancel(); // Stop ongoing speech
-
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = 'id-ID';
-                utterance.rate = 1.02; // natural pace
-                utterance.pitch = 1.05; // clear tech assistant tone
-                utterance.volume = 1.0;
-
-                const selectedVoice = getIndonesianVoice();
-                if (selectedVoice) utterance.voice = selectedVoice;
-
-                utterance.onstart = () => {
-                    isAISpeaking = true;
-                    lastSpokenText = text;
-                    lastAutoSpeechTime = Date.now();
-                    setAIVoiceUI(true);
-                };
-
-                utterance.onend = () => {
-                    isAISpeaking = false;
-                    setAIVoiceUI(false);
-                };
-
-                utterance.onerror = (e) => {
-                    console.log("SpeechSynthesis error:", e);
-                    isAISpeaking = false;
-                    setAIVoiceUI(false);
-                };
-
-                // Play intro chime for user feedback
-                playSciFiSound('telemetry');
-                window.speechSynthesis.speak(utterance);
-            } catch (err) {
-                console.error("AI voice playback failed:", err);
-                isAISpeaking = false;
-                setAIVoiceUI(false);
-            }
-        }
-
-        function stopAISpeech() {
-            if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel();
-            }
-            isAISpeaking = false;
-            setAIVoiceUI(false);
-            showToast("Pembacaan AI dihentikan");
-        }
-
-        function setAIVoiceUI(speaking) {
-            const statusPill = document.getElementById('ai_speech_status_pill');
-            const waveForm = document.getElementById('ai_speech_waveform');
-            const btnText = document.getElementById('btn_speak_ai_text');
-            const btnIcon = document.getElementById('btn_speak_ai_icon');
-            const headerVoiceIcon = document.getElementById('ai_voice_icon');
-
-            if (speaking) {
-                if (statusPill) {
-                    statusPill.innerText = "▶ MEMBACA...";
-                    statusPill.className = "text-[10px] font-mono px-2 py-0.5 rounded-full bg-neon-cyan/20 text-neon-cyan border border-cyan-400 animate-pulse font-bold";
-                }
-                if (waveForm) waveForm.classList.remove('hidden');
-                if (btnText) btnText.innerText = "SEDANG MEMBACA...";
-                if (btnIcon) btnIcon.setAttribute('data-lucide', 'volume-x');
-                if (headerVoiceIcon) headerVoiceIcon.classList.add('animate-bounce');
-            } else {
-                if (statusPill) {
-                    statusPill.innerText = isAIVoiceEnabled ? "AI SIAP" : "AI NONAKTIF";
-                    statusPill.className = isAIVoiceEnabled 
-                        ? "text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-950/80 text-neon-cyan border border-cyan-500/40"
-                        : "text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-900 text-slate-400 border border-slate-700";
-                }
-                if (waveForm) waveForm.classList.add('hidden');
-                if (btnText) btnText.innerText = "BACA REKOMENDASI AI";
-                if (btnIcon) btnIcon.setAttribute('data-lucide', 'volume-2');
-                if (headerVoiceIcon) headerVoiceIcon.classList.remove('animate-bounce');
-            }
-            lucide.createIcons();
-        }
-
-        function speakCurrentRecommendation() {
-            if (isAISpeaking) {
-                stopAISpeech();
-                return;
-            }
-            const recEl = document.getElementById('agri_recommendation_text');
-            let textToRead = recEl ? recEl.innerText : "Sistem Irigasi Cerdas IoT NZ-27 beroperasi optimal.";
-            
-            // Clean up emoji characters for smoother speech
-            textToRead = textToRead.replace(/⚠️|🌱|💧|🌿|🎵/g, '').trim();
-            
-            const currentMoisture = lastMoisture !== null ? lastMoisture : 45;
-            const fullVoiceText = `Laporan Stasiun Pertanian Cerdas Kelompok Dua. Kelembapan tanah saat ini adalah ${currentMoisture} persen. ${textToRead}`;
-            
-            playAIVoice(fullVoiceText, false);
-            showToast("AI sedang membacakan analisis dan status tanah...");
-        }
-
-        function toggleAIVoiceAnnouncer() {
-            isAIVoiceEnabled = !isAIVoiceEnabled;
-            const label = document.getElementById('ai_voice_label');
-            const icon = document.getElementById('ai_voice_icon');
-            const activeTag = document.getElementById('ai_voice_active_tag');
-            const statusPill = document.getElementById('ai_speech_status_pill');
-
-            if (isAIVoiceEnabled) {
-                if (label) label.innerText = "SUARA AI: AKTIF";
-                if (icon) icon.className = "w-4 h-4 text-neon-cyan";
-                if (activeTag) {
-                    activeTag.innerText = "AKTIF";
-                    activeTag.className = "text-neon-emerald font-bold";
-                }
-                showToast("Suara Pembacaan AI Otomatis Diaktifkan");
-                playSciFiSound('click');
-            } else {
-                if (label) label.innerText = "SUARA AI: OFF";
-                if (icon) icon.className = "w-4 h-4 text-slate-400";
-                if (activeTag) {
-                    activeTag.innerText = "OFF";
-                    activeTag.className = "text-slate-400 font-bold";
-                }
-                stopAISpeech();
-                showToast("Suara Pembacaan AI Otomatis Dinonaktifkan");
-            }
-            setAIVoiceUI(isAISpeaking);
-        }
-
-        function toggleAudioFX() {
-            soundEnabled = !soundEnabled;
-            const icon = document.getElementById('sound_icon');
-            if (soundEnabled) {
-                icon.setAttribute('data-lucide', 'volume-2');
-                showToast("Efek Suara Diaktifkan");
-                playSciFiSound('click');
-            } else {
-                icon.setAttribute('data-lucide', 'volume-x');
-                showToast("Efek Suara Dinonaktifkan");
-            }
-            lucide.createIcons();
-        }
-
-        // Theme Toggle Functionality
-        let isDarkMode = true;
-        function toggleTheme() {
-            isDarkMode = !isDarkMode;
-            const body = document.getElementById('app_body');
-            const themeIcon = document.getElementById('theme_icon');
-            
-            if (isDarkMode) {
-                document.documentElement.classList.add('dark');
-                body.className = "bg-space-950 text-slate-100 antialiased flex flex-col justify-between min-h-screen transition-colors duration-500 cyber-grid-bg";
-                themeIcon.setAttribute('data-lucide', 'moon');
-                themeIcon.className = "w-4 h-4 text-cyan-400";
-            } else {
-                document.documentElement.classList.remove('dark');
-                body.className = "bg-slate-50 text-slate-900 antialiased flex flex-col justify-between min-h-screen transition-colors duration-500";
-                themeIcon.setAttribute('data-lucide', 'sun');
-                themeIcon.className = "w-4 h-4 text-amber-500";
-            }
-            lucide.createIcons();
-            playSciFiSound('click');
-        }
-
-        // Toast Notification System
-        function showToast(message, type = 'success') {
-            const toast = document.getElementById('toast');
-            const toastMsg = document.getElementById('toast_message');
-            const toastIcon = document.getElementById('toast_icon');
-            
-            toastMsg.innerText = message;
-            if (type === 'error') {
-                toastIcon.setAttribute('data-lucide', 'alert-triangle');
-                toastIcon.className = 'w-5 h-5 text-rose-400';
-            } else {
-                toastIcon.setAttribute('data-lucide', 'check-circle');
-                toastIcon.className = 'w-5 h-5 text-neon-emerald';
-            }
+        // Initialize Charts matching Image 1 exactly
+        window.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
 
-            toast.classList.remove('translate-y-24', 'opacity-0', 'pointer-events-none');
-            setTimeout(() => {
-                toast.classList.add('translate-y-24', 'opacity-0', 'pointer-events-none');
-            }, 3000);
-        }
-
-        // Add Log to Console Stream
-        function addActivityLog(text, type = 'info') {
-            const container = document.getElementById('activity_log_container');
-            const timeStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            
-            let dotColor = 'bg-neon-emerald';
-            if (type === 'warn') dotColor = 'bg-amber-400';
-            if (type === 'danger') dotColor = 'bg-rose-500';
-            if (type === 'water') dotColor = 'bg-cyan-400';
-
-            const logItem = document.createElement('div');
-            logItem.className = 'flex items-center justify-between p-2.5 rounded-xl bg-space-950/80 border border-slate-800/80 text-slate-300 animate-fadeIn';
-            logItem.innerHTML = `
-                <div class="flex items-center gap-2.5">
-                    <span class="w-2 h-2 rounded-full ${dotColor} shrink-0"></span>
-                    <span class="truncate">${text}</span>
-                </div>
-                <span class="text-[10px] text-slate-500 font-mono ml-2 shrink-0">${timeStr}</span>
-            `;
-            
-            container.insertBefore(logItem, container.firstChild);
-            
-            if (container.children.length > 25) {
-                container.removeChild(container.lastChild);
-            }
-        }
-
-        function clearActivityLogs() {
-            document.getElementById('activity_log_container').innerHTML = `
-                <div class="flex items-center justify-between p-2.5 rounded-xl bg-space-950/80 border border-slate-800/80 text-slate-500">
-                    <span>Log telemetri telah dibersihkan.</span>
-                    <span class="text-[10px]">Baru saja</span>
-                </div>
-            `;
-            playSciFiSound('click');
-        }
-
-        // Live Particle & Irrigation Canvas Simulator
-        let canvas = null;
-        let ctx = null;
-        let particles = [];
-        let soilWaves = [];
-        let animFrameId = null;
-
-        function initFarmCanvas() {
-            canvas = document.getElementById('farmCanvas');
-            if (!canvas) return;
-            ctx = canvas.getContext('2d');
-            
-            function resize() {
-                canvas.width = canvas.parentElement.clientWidth;
-                canvas.height = canvas.parentElement.clientHeight;
-            }
-            resize();
-            window.addEventListener('resize', resize);
-
-            // Generate initial soil particles
-            particles = [];
-            for (let i = 0; i < 40; i++) {
-                particles.push({
-                    x: Math.random() * canvas.width,
-                    y: Math.random() * canvas.height,
-                    radius: Math.random() * 2 + 1,
-                    speedY: Math.random() * 1.5 + 0.5,
-                    opacity: Math.random() * 0.7 + 0.3
-                });
+            // Trigger subtle countup from 0.00 to current default on initial load
+            if (!isInitialGrowthRateAnimated) {
+                animateGrowthRate(0.70, 1.5);
+                isInitialGrowthRateAnimated = true;
             }
 
-            renderCanvas();
-        }
-
-        let isCanvasLoopRunning = false;
-
-        function triggerCanvasRedraw() {
-            if (isManual) {
-                if (!isCanvasLoopRunning) {
-                    isCanvasLoopRunning = true;
-                    renderCanvas();
-                }
-            } else {
-                isCanvasLoopRunning = false;
-                if (animFrameId) {
-                    cancelAnimationFrame(animFrameId);
-                    animFrameId = null;
-                }
-                renderCanvasFrame();
-            }
-        }
-
-        function renderCanvasFrame() {
-            if (!ctx || !canvas) return;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            const moisture = lastMoisture !== null ? lastMoisture : 45;
-            const isSpraying = isManual;
-
-            // 1. Draw Soil Layer Gradient based on moisture
-            const soilGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-            if (moisture < 35) {
-                soilGrad.addColorStop(0, '#1c150c');
-                soilGrad.addColorStop(1, '#0e0b06');
-            } else if (moisture <= 70) {
-                soilGrad.addColorStop(0, '#062d1d');
-                soilGrad.addColorStop(1, '#03170e');
-            } else {
-                soilGrad.addColorStop(0, '#042738');
-                soilGrad.addColorStop(1, '#02131c');
-            }
-            ctx.fillStyle = soilGrad;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // 2. Draw Grid Scanlines (simplified)
-            ctx.strokeStyle = 'rgba(0, 255, 157, 0.04)';
-            ctx.lineWidth = 1;
-            const gridSize = 32;
-            for (let x = 0; x < canvas.width; x += gridSize) {
-                ctx.beginPath();
-                ctx.moveTo(x, 0);
-                ctx.lineTo(x, canvas.height);
-                ctx.stroke();
-            }
-            for (let y = 0; y < canvas.height; y += gridSize) {
-                ctx.beginPath();
-                ctx.moveTo(0, y);
-                ctx.lineTo(canvas.width, y);
-                ctx.stroke();
-            }
-
-            // 3. Draw Water Droplets & Sprinklers when Pump is ON
-            if (isSpraying) {
-                // Sprinkler Heads
-                const numNozzles = Math.max(2, Math.floor(canvas.width / 160));
-                for (let n = 1; n <= numNozzles; n++) {
-                    const nx = (canvas.width / (numNozzles + 1)) * n;
-                    const ny = 24;
-
-                    ctx.fillStyle = '#00f0ff';
-                    ctx.beginPath();
-                    ctx.arc(nx, ny, 4, 0, Math.PI * 2);
-                    ctx.fill();
-
-                    ctx.strokeStyle = 'rgba(0, 240, 255, 0.25)';
-                    ctx.beginPath();
-                    ctx.arc(nx, ny, 40, 0, Math.PI);
-                    ctx.stroke();
-                }
-
-                // Falling Water Droplets
-                ctx.fillStyle = '#00f0ff';
-                particles.forEach(p => {
-                    ctx.globalAlpha = p.opacity;
-                    ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-                    ctx.fill();
-
-                    p.y += p.speedY * 3;
-                    if (p.y > canvas.height) {
-                        p.y = 20;
-                        p.x = Math.random() * canvas.width;
-                    }
-                });
-                ctx.globalAlpha = 1.0;
-            }
-
-            // 4. Draw Precision Sensor Node Probes in Canvas
-            const probeX = canvas.width / 2;
-            const probeY = canvas.height - 30;
-            ctx.fillStyle = '#00ff9d';
-            ctx.fillRect(probeX - 12, probeY, 24, 3);
-            ctx.fillStyle = 'rgba(0, 255, 157, 0.4)';
-            ctx.fillRect(probeX - 2, probeY - 18, 4, 18);
-        }
-
-        function renderCanvas() {
-            renderCanvasFrame();
-            if (isManual) {
-                isCanvasLoopRunning = true;
-                animFrameId = requestAnimationFrame(renderCanvas);
-            } else {
-                isCanvasLoopRunning = false;
-                animFrameId = null;
-            }
-        }
-
-        // Initialize Telemetry Sparkline Chart
-        function initChart() {
-            const ctxChart = document.getElementById('moistureChart').getContext('2d');
-            const now = new Date();
-            for (let i = 9; i >= 0; i--) {
-                const t = new Date(now.getTime() - i * 10000);
-                timeHistory.push(t.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
-                moistureHistory.push(null);
-            }
-
-            chartInstance = new Chart(ctxChart, {
-                type: 'line',
+            // 1. Water Flow Bar Chart (Sleek vertical bars with green highlights)
+            const ctxWater = document.getElementById('waterFlowChart').getContext('2d');
+            new Chart(ctxWater, {
+                type: 'bar',
                 data: {
-                    labels: timeHistory,
+                    labels: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'],
                     datasets: [{
-                        label: 'Kelembapan (%)',
-                        data: moistureHistory,
-                        borderColor: '#00ff9d',
-                        backgroundColor: 'rgba(0, 255, 157, 0.12)',
-                        borderWidth: 2,
-                        fill: true,
-                        tension: 0.3,
-                        pointRadius: 2,
-                        pointHoverRadius: 4,
-                        pointBackgroundColor: '#00f0ff'
+                        data: [2, 3, 2, 4, 3, 4, 6, 6, 6, 6, 6, 5],
+                        backgroundColor: (ctx) => {
+                            return ctx.dataIndex >= 6 ? '#729C51' : 'rgba(203, 213, 225, 0.55)';
+                        },
+                        borderRadius: 4,
+                        barThickness: 8
                     }]
                 },
                 options: {
-                    animation: false,
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: (c) => `Kelembapan: ${c.parsed.y}%`
-                            }
-                        }
-                    },
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { display: false },
+                        y: { display: false }
+                    }
+                }
+            });
+
+            // 2. Power Consumption Chart (Orange & Green bars)
+            const ctxPower = document.getElementById('powerChart').getContext('2d');
+            new Chart(ctxPower, {
+                type: 'bar',
+                data: {
+                    labels: ['07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '01:00'],
+                    datasets: [{
+                        data: [4, 5, 3, 7, 8, 3, 6],
+                        backgroundColor: (ctx) => {
+                            if (ctx.dataIndex >= 3 && ctx.dataIndex <= 4) return '#EB5011';
+                            if (ctx.dataIndex >= 5) return '#729C51';
+                            return 'rgba(203, 213, 225, 0.6)';
+                        },
+                        borderRadius: 4,
+                        barThickness: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { size: 9 }, color: '#94a3b8' }
+                        },
+                        y: { display: false }
+                    }
+                }
+            });
+
+            // 3. Growth Rate Bar Chart with Dates (July 20 - July 26)
+            const ctxGrowth = document.getElementById('growthRateChart').getContext('2d');
+            new Chart(ctxGrowth, {
+                type: 'bar',
+                data: {
+                    labels: ['July 20', 'July 21', 'July 22', 'July 23', 'July 24', 'July 25', 'July 26'],
+                    datasets: [{
+                        data: [3, 4, 3, 6, 7, 4, 3],
+                        backgroundColor: (ctx) => {
+                            return (ctx.dataIndex >= 3 && ctx.dataIndex <= 4) ? '#729C51' : 'rgba(203, 213, 225, 0.55)';
+                        },
+                        borderRadius: 4,
+                        barThickness: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { size: 8 }, color: '#94a3b8' }
+                        },
+                        y: { display: false }
+                    }
+                }
+            });
+
+            // 4. Air CO2 Stepped Area Chart
+            const ctxCO2 = document.getElementById('co2Chart').getContext('2d');
+            new Chart(ctxCO2, {
+                type: 'line',
+                data: {
+                    labels: ['400', '600', '700', '800', '900', '850', '900'],
+                    datasets: [{
+                        data: [400, 550, 700, 780, 900, 880, 900],
+                        stepped: true,
+                        borderColor: '#729C51',
+                        borderWidth: 2,
+                        backgroundColor: 'rgba(114, 156, 81, 0.15)',
+                        fill: true,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
                     scales: {
                         x: { display: false },
                         y: {
-                            min: 0,
-                            max: 100,
-                            ticks: {
-                                stepSize: 25,
-                                font: { size: 9, family: 'JetBrains Mono' },
-                                color: '#64748b'
-                            },
-                            grid: { color: 'rgba(255, 255, 255, 0.05)' }
+                            min: 300,
+                            max: 1000,
+                            ticks: { font: { size: 8 }, color: '#94a3b8', stepSize: 200 },
+                            grid: { color: 'rgba(148, 163, 184, 0.1)' }
                         }
                     }
                 }
             });
-        }
-
-        // Circular Gauge Neon Arc Updater
-        function updateMoistureGauge(moisture) {
-            const circle = document.getElementById('moisture_circle');
-            const circumference = 2 * Math.PI * 58; // r=58 -> ~364.42
-            const percent = Math.max(0, Math.min(100, moisture));
-            const offset = circumference - (percent / 100) * circumference;
-            circle.style.strokeDashoffset = offset;
-
-            const statusDot = document.getElementById('status_pill_dot');
-            const quickDot = document.getElementById('quick_soil_dot');
-
-            if (percent < 35) {
-                circle.setAttribute('class', 'text-amber-400 transition-all duration-700 ease-out');
-                if (statusDot) statusDot.className = 'w-2 h-2 rounded-full bg-amber-400 animate-ping';
-                if (quickDot) quickDot.className = 'w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping';
-            } else if (percent <= 70) {
-                circle.setAttribute('class', 'text-neon-emerald transition-all duration-700 ease-out');
-                if (statusDot) statusDot.className = 'w-2 h-2 rounded-full bg-neon-emerald animate-ping';
-                if (quickDot) quickDot.className = 'w-2.5 h-2.5 rounded-full bg-neon-emerald animate-ping';
-            } else {
-                circle.setAttribute('class', 'text-neon-cyan transition-all duration-700 ease-out');
-                if (statusDot) statusDot.className = 'w-2 h-2 rounded-full bg-neon-cyan animate-ping';
-                if (quickDot) quickDot.className = 'w-2.5 h-2.5 rounded-full bg-neon-cyan animate-ping';
-            }
-        }
-
-        // Pump Active Timer & Water Discharge Calculator
-        function startPumpTimer() {
-            if (!pumpStartTime) pumpStartTime = Date.now();
-            if (pumpTimerInterval) clearInterval(pumpTimerInterval);
-            
-            const timerBox = document.getElementById('pump_active_timer_box');
-            const timerText = document.getElementById('pump_running_timer');
-            const liveLiters = document.getElementById('pump_live_liters');
-            const canvasFlow = document.getElementById('canvas_flow_val');
-            const quickWaterTotal = document.getElementById('quick_water_total');
-            const quickWaterFlow = document.getElementById('quick_water_flow');
-            
-            if (timerBox) timerBox.classList.remove('hidden');
-            if (canvasFlow) canvasFlow.innerText = "2.4 L/min";
-            if (quickWaterFlow) quickWaterFlow.innerText = "Laju: 2.4 L/menit";
-
-            pumpTimerInterval = setInterval(() => {
-                const elapsedSec = Math.floor((Date.now() - pumpStartTime) / 1000);
-                const mins = String(Math.floor(elapsedSec / 60)).padStart(2, '0');
-                const secs = String(elapsedSec % 60).padStart(2, '0');
-                if (timerText) timerText.innerText = `${mins}:${secs}`;
-
-                // Calculate estimated water consumption (2.4 Liter/minute = 0.04 Liter/sec)
-                totalWaterLiters += 0.04;
-                const litStr = totalWaterLiters.toFixed(1) + " L";
-                if (liveLiters) liveLiters.innerText = litStr;
-                if (quickWaterTotal) quickWaterTotal.innerText = litStr;
-            }, 1000);
-        }
-
-        function stopPumpTimer() {
-            if (pumpTimerInterval) clearInterval(pumpTimerInterval);
-            pumpTimerInterval = null;
-            pumpStartTime = null;
-            const timerBox = document.getElementById('pump_active_timer_box');
-            if (timerBox) timerBox.classList.add('hidden');
-            const canvasFlow = document.getElementById('canvas_flow_val');
-            const quickWaterFlow = document.getElementById('quick_water_flow');
-            if (canvasFlow) canvasFlow.innerText = "0.0 L/min";
-            if (quickWaterFlow) quickWaterFlow.innerText = "Laju: 0.0 L/menit";
-        }
-
-        // =========================================================================
-        // REALTIME DATABASE WEBSOCKET LISTENER (0 BYTE SAAT TIDAK ADA PERUBAHAN)
-        // =========================================================================
-        function initRealtimeListener() {
-            // Monitor real-time connection state
-            rtdb.ref('.info/connected').on('value', (snap) => {
-                const connected = snap.val() === true;
-                const connPill = document.getElementById('connection_pill');
-                const connText = document.getElementById('connection_text');
-                const pingDot = document.getElementById('ping_dot');
-                const pingRadar = document.getElementById('ping_radar');
-                const latencyEl = document.getElementById('latency_metric');
-
-                if (connected) {
-                    if (connPill) connPill.className = "flex items-center gap-2 px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold bg-emerald-950/60 text-neon-emerald border border-emerald-500/40 shadow-xs";
-                    if (connText) connText.innerText = "CLOUD LIVE";
-                    if (pingDot) pingDot.className = "relative inline-flex rounded-full h-2.5 w-2.5 bg-neon-emerald";
-                    if (pingRadar) pingRadar.className = "animate-ping absolute inline-flex h-full w-full rounded-full bg-neon-emerald opacity-75";
-                    if (latencyEl) latencyEl.innerText = "WS LIVE";
-                } else {
-                    if (connPill) connPill.className = "flex items-center gap-2 px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold bg-amber-950/80 text-amber-400 border border-amber-500/40 shadow-xs";
-                    if (connText) connText.innerText = "CONNECTING";
-                    if (pingDot) pingDot.className = "relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500";
-                    if (pingRadar) pingRadar.className = "hidden";
-                    if (latencyEl) latencyEl.innerText = "OFFLINE";
-                }
-            });
-
-            // WebSocket Real-time Listener on node 'penyiram'
-            penyiramRef.on('value', (snapshot) => {
-                const data = snapshot.val();
-                hasSuccessfulConnection = true;
-                lastDataReceivedTime = Date.now();
-
-                const connPill = document.getElementById('connection_pill');
-                const connText = document.getElementById('connection_text');
-                const pingDot = document.getElementById('ping_dot');
-                const pingRadar = document.getElementById('ping_radar');
-                const latencyEl = document.getElementById('latency_metric');
-
-                if (connPill) connPill.className = "flex items-center gap-2 px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold bg-emerald-950/60 text-neon-emerald border border-emerald-500/40 shadow-xs";
-                if (connText) connText.innerText = "CLOUD LIVE";
-                if (pingDot) pingDot.className = "relative inline-flex rounded-full h-2.5 w-2.5 bg-neon-emerald";
-                if (pingRadar) pingRadar.className = "animate-ping absolute inline-flex h-full w-full rounded-full bg-neon-emerald opacity-75";
-                if (latencyEl) latencyEl.innerText = "WS 0B";
-
-                if (data) {
-                    const moisture = data.kelembapan !== undefined ? Number(data.kelembapan) : 0;
-                    const status = data.status || "Normal";
-                    const jadwalPupuk = data.jadwal_pupuk !== undefined ? data.jadwal_pupuk : 6;
-                    isManual = data.manual === true;
-
-                    // Update Kelembapan
-                    const moistureVal = document.getElementById('moisture_val');
-                    const statusVal = document.getElementById('status_val');
-                    const quickSoil = document.getElementById('quick_soil_status');
-                    const canvasMoist = document.getElementById('canvas_moisture_val');
-                    
-                    if (moistureVal) moistureVal.innerText = `${moisture}%`;
-                    if (statusVal) statusVal.innerText = status;
-                    if (quickSoil) quickSoil.innerText = `${status} (${moisture}%)`;
-                    if (canvasMoist) canvasMoist.innerText = `${moisture}%`;
-                    updateMoistureGauge(moisture);
-
-                    // Update Agronomy Recommendations / Ticker
-                    const recEl = document.getElementById('agri_recommendation_text');
-                    const tickerEl = document.getElementById('ticker_text');
-                    if (moisture === 0) {
-                        if (recEl) recEl.innerText = "🚨 PERINGATAN KRITIS: Kelembapan tanah 0% (Tanah Kering Total!). Sistem pompa penyiraman darurat aktif.";
-                        if (tickerEl) tickerEl.innerText = `🚨 PERINGATAN KRITIS: Kelembapan tanah 0% (Sangat Kering!). Pompa air otomatis dipicu.`;
-                        if (lastMoisture !== 0) {
-                            playSciFiSound('alert');
-                            if (isAIVoiceEnabled) {
-                                playAIVoice("Peringatan! Kelembapan tanah nol persen, tanah sangat kering, sistem penyiraman darurat aktif.", true);
-                            }
-                        }
-                    } else if (moisture < 35) {
-                        if (recEl) recEl.innerText = `⚠️ Peringatan: Kelembapan tanah kritis (${moisture}%). Pompa irigasi otomatis diaktifkan untuk mencegah kekeringan pada tanaman.`;
-                        if (tickerEl) tickerEl.innerText = `⚠️ PERINGATAN: Kelembapan tanah ${moisture}% (Kering). Pompa air dipicu.`;
-                        if (lastMoisture === null || lastMoisture >= 35 || lastMoisture === 0) {
-                            playSciFiSound('alert');
-                            if (isAIVoiceEnabled) {
-                                playAIVoice(`Peringatan! Kelembapan tanah kritis ${moisture} persen, kondisi tanah kering, pompa otomatis aktif.`, true);
-                            }
-                        }
-                    } else if (moisture <= 70) {
-                        if (recEl) recEl.innerText = "🌱 Kondisi kelembapan sangat optimal (36%-70%). Tanaman menyerap nutrisi dan air secara maksimal.";
-                        if (tickerEl) tickerEl.innerText = `🌱 Kelembapan tanah ${moisture}% (Ideal). Sistem irigasi dalam mode siaga otomatis.`;
-                        if (lastMoisture !== null && lastMoisture < 35) {
-                            if (isAIVoiceEnabled) {
-                                playAIVoice(`Kelembapan tanah kembali normal, ${moisture} persen, kondisi optimal.`, true);
-                            }
-                        }
-                    } else {
-                        if (recEl) recEl.innerText = "💧 Kondisi tanah jenuh/basah (>70%). Penyiraman ditunda sementara guna mencegah pembusukan akar.";
-                        if (tickerEl) tickerEl.innerText = `💧 Kelembapan tanah ${moisture}% (Basah). Penyiraman dinonaktifkan sementara.`;
-                    }
-
-                    // Log Activity on Significant Changes
-                    if (lastMoisture !== null && Math.abs(lastMoisture - moisture) >= 4) {
-                        addActivityLog(`[TELEMETRY] Sensor mendeteksi perubahan kelembapan: ${moisture}% (${status})`, moisture < 35 ? 'warn' : 'info');
-                    }
-                    lastMoisture = moisture;
-
-                    // Update Chart.js Buffer
-                    if (chartInstance) {
-                        const nowStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                        chartInstance.data.labels.push(nowStr);
-                        chartInstance.data.datasets[0].data.push(moisture);
-                        if (chartInstance.data.labels.length > 10) {
-                            chartInstance.data.labels.shift();
-                            chartInstance.data.datasets[0].data.shift();
-                        }
-                        chartInstance.update('none');
-                    }
-
-                    // Update Fertilizer Input & Forecast (only when user is not actively adjusting)
-                    const timeSinceUserAdjust = Date.now() - lastFertilizerAdjustTime;
-                    if (timeSinceUserAdjust > 3500) {
-                        const inputPupuk = document.getElementById('input_pupuk');
-                        const sliderPupuk = document.getElementById('slider_pupuk');
-                        
-                        let displayVal = jadwalPupuk;
-                        if (currentFertilizerUnit === 'hours') {
-                            displayVal = Math.max(1, Math.round(jadwalPupuk * 24));
-                        } else if (currentFertilizerUnit === 'weeks') {
-                            displayVal = Math.max(1, +(jadwalPupuk / 7).toFixed(1));
-                        }
-
-                        if (inputPupuk && document.activeElement !== inputPupuk) {
-                            inputPupuk.value = displayVal;
-                        }
-                        if (sliderPupuk && document.activeElement !== sliderPupuk) {
-                            if (displayVal <= parseInt(sliderPupuk.max)) {
-                                sliderPupuk.value = displayVal;
-                            }
-                        }
-                        const quickLabel = document.getElementById('quick_fertilizer_val');
-                        if (quickLabel) {
-                            quickLabel.innerText = `Setiap ${jadwalPupuk} Hari`;
-                        }
-                        updateFertilizerForecast(jadwalPupuk);
-                    }
-
-                    // Update Pump UI
-                    updatePumpUI(isManual);
-                    triggerCanvasRedraw();
-                }
-            }, (error) => {
-                console.error("Firebase Realtime Listener error:", error);
-                const connPill = document.getElementById('connection_pill');
-                const connText = document.getElementById('connection_text');
-                const pingDot = document.getElementById('ping_dot');
-                const pingRadar = document.getElementById('ping_radar');
-                const latencyEl = document.getElementById('latency_metric');
-
-                if (connPill) connPill.className = "flex items-center gap-2 px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold bg-amber-950/80 text-amber-400 border border-amber-500/40 shadow-xs";
-                if (connText) connText.innerText = "RECONNECTING";
-                if (pingDot) pingDot.className = "relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500";
-                if (pingRadar) pingRadar.className = "hidden";
-                if (latencyEl) latencyEl.innerText = "ERR";
-
-                if (lastMoisture === null) {
-                    const fallbackMoisture = 52;
-                    const fallbackStatus = "Ideal (Optimal)";
-                    const moistureVal = document.getElementById('moisture_val');
-                    const statusVal = document.getElementById('status_val');
-                    const quickSoil = document.getElementById('quick_soil_status');
-                    const canvasMoist = document.getElementById('canvas_moisture_val');
-                    
-                    if (moistureVal) moistureVal.innerText = `${fallbackMoisture}%`;
-                    if (statusVal) statusVal.innerText = fallbackStatus;
-                    if (quickSoil) quickSoil.innerText = `${fallbackStatus} (${fallbackMoisture}%)`;
-                    if (canvasMoist) canvasMoist.innerText = `${fallbackMoisture}%`;
-                    updateMoistureGauge(fallbackMoisture);
-                    updatePumpUI(isManual);
-                }
-            });
-        }
-
-        // Manual refresh icon click trigger
-        function fetchData(manualTrigger = false) {
-            const refreshIcon = document.getElementById('refresh_icon');
-            if (manualTrigger && refreshIcon) {
-                refreshIcon.classList.add('animate-spin');
-                playSciFiSound('click');
-            }
-
-            penyiramRef.once('value').then((snapshot) => {
-                if (manualTrigger && refreshIcon) {
-                    setTimeout(() => refreshIcon.classList.remove('animate-spin'), 600);
-                }
-                showToast("Data Realtime Cloud Terverifikasi");
-            }).catch(err => {
-                if (manualTrigger && refreshIcon) {
-                    refreshIcon.classList.remove('animate-spin');
-                }
-                console.error("Manual sync check error:", err);
-            });
-        }
-
-        function updateFertilizerForecast(days) {
-            const targetDate = new Date();
-            targetDate.setDate(targetDate.getDate() + days);
-            const options = { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' };
-            const formatted = targetDate.toLocaleDateString('id-ID', options);
-            const forecastEl = document.getElementById('fertilizer_forecast_date');
-            if (forecastEl) forecastEl.innerText = formatted;
-        }
-
-        // Update Pump Graphics & Relay Status
-        function updatePumpUI(manualOn) {
-            const btn = document.getElementById('btn_manual');
-            const btnText = document.getElementById('btn_manual_text');
-            const btnIcon = document.getElementById('btn_manual_icon');
-            const btnIconBox = document.getElementById('btn_manual_icon_box');
-            const toggleOff = document.getElementById('toggle_state_off');
-            const toggleOn = document.getElementById('toggle_state_on');
-            const pumpAvatar = document.getElementById('pump_avatar_container');
-            const pumpWave = document.getElementById('pump_wave_effect');
-            const pumpGears = document.getElementById('pump_active_gears');
-            const pumpHeadline = document.getElementById('pump_headline');
-            const pumpDesc = document.getElementById('pump_description');
-            const pumpModeBadge = document.getElementById('pump_mode_badge');
-            const quickPumpBadge = document.getElementById('quick_pump_badge');
-            const quickPumpIconWrap = document.getElementById('quick_pump_icon_wrap');
-            const quickPumpStatus = document.getElementById('quick_pump_status');
-            const quickPumpMode = document.getElementById('quick_pump_mode');
-
-            if (manualOn) {
-                // Pump ACTIVE (ON)
-                if (btn) {
-                    btn.className = "w-full group relative flex items-center justify-between p-2.5 bg-emerald-950/40 hover:bg-emerald-900/40 border-2 border-emerald-500/80 rounded-2xl transition-all shadow-xl shadow-emerald-950/60 cursor-pointer active:scale-[0.99]";
-                }
-                if (btnText) {
-                    btnText.innerHTML = '<span class="text-neon-emerald glow-text-emerald">STATUS: AKTIF (ON)</span>';
-                }
-                if (btnIconBox) {
-                    btnIconBox.className = "w-9 h-9 rounded-xl bg-emerald-950 text-neon-emerald border border-emerald-500/60 flex items-center justify-center transition-all shrink-0 shadow-md shadow-emerald-950 animate-pulse";
-                }
-                if (btnIcon) {
-                    btnIcon.setAttribute('data-lucide', 'power');
-                }
-                if (toggleOff) {
-                    toggleOff.className = "px-2.5 py-1 rounded-lg text-slate-500 hover:text-slate-300 transition-all font-mono";
-                }
-                if (toggleOn) {
-                    toggleOn.className = "px-2.5 py-1 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-mono font-black border border-emerald-400/80 shadow-lg shadow-emerald-600/40 transition-all animate-pulse";
-                }
-
-                if (pumpAvatar) {
-                    pumpAvatar.className = "w-20 h-20 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 border-2 border-neon-emerald text-white flex items-center justify-center transition-all duration-500 relative shadow-2xl shadow-emerald-500/40 cursor-pointer hover:scale-105 active:scale-95 group";
-                }
-                if (pumpWave) pumpWave.classList.remove('hidden');
-                if (pumpGears) pumpGears.classList.remove('hidden');
-                if (pumpHeadline) {
-                    pumpHeadline.innerText = "Pompa Air Sedang Aktif";
-                    pumpHeadline.className = "text-base font-black text-neon-emerald font-mono tracking-tight mb-0.5 glow-text-emerald";
-                }
-                if (pumpDesc) {
-                    pumpDesc.innerText = "Relay berstatus ON. Air sedang didistribusikan ke nozel irigasi lapangan.";
-                }
-                
-                if (pumpModeBadge) {
-                    pumpModeBadge.innerText = "MANUAL: IRIGASI AKTIF";
-                    pumpModeBadge.className = "px-2.5 py-1 text-[10px] font-mono font-bold rounded-full bg-emerald-950/80 text-neon-emerald border border-emerald-500/40 animate-pulse";
-                }
-
-                if (quickPumpBadge) {
-                    quickPumpBadge.innerText = "ACTIVE (ON)";
-                    quickPumpBadge.className = "px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-950/80 text-neon-emerald border border-emerald-500/40 animate-pulse";
-                }
-
-                if (quickPumpIconWrap) {
-                    quickPumpIconWrap.className = "p-3 rounded-xl bg-emerald-950/80 text-neon-emerald border border-emerald-500/40 animate-pulse shadow-md shadow-emerald-950";
-                }
-                if (quickPumpStatus) {
-                    quickPumpStatus.innerText = "Aktif Menyiram";
-                    quickPumpStatus.className = "text-lg font-black text-neon-emerald font-mono tracking-tight glow-text-emerald";
-                }
-                if (quickPumpMode) {
-                    quickPumpMode.innerText = "Kontrol Manual Operator";
-                }
-
-                startPumpTimer();
-                if (isWateringMusicAuto) {
-                    startWateringMusic();
-                }
-
-                if (lastManualState === false) {
-                    addActivityLog("[RELAY_PUMP] Relay Pompa Air diaktifkan secara MANUAL (ON).", "water");
-                    playSciFiSound('pump_on');
-                }
-            } else {
-                // Pump STANDBY (OFF)
-                if (btn) {
-                    btn.className = "w-full group relative flex items-center justify-between p-2.5 bg-space-950/90 hover:bg-space-900 border border-slate-700 hover:border-emerald-500/50 rounded-2xl transition-all shadow-xl cursor-pointer active:scale-[0.99]";
-                }
-                if (btnText) {
-                    btnText.innerHTML = '<span class="text-slate-300 font-bold">STATUS: NONAKTIF (OFF)</span>';
-                }
-                if (btnIconBox) {
-                    btnIconBox.className = "w-9 h-9 rounded-xl bg-slate-800 text-slate-400 border border-slate-700 flex items-center justify-center transition-all shrink-0";
-                }
-                if (btnIcon) {
-                    btnIcon.setAttribute('data-lucide', 'power');
-                }
-                if (toggleOff) {
-                    toggleOff.className = "px-2.5 py-1 rounded-lg bg-slate-800 text-white font-mono font-bold border border-slate-600 shadow-sm transition-all";
-                }
-                if (toggleOn) {
-                    toggleOn.className = "px-2.5 py-1 rounded-lg text-slate-500 hover:text-slate-300 transition-all font-mono";
-                }
-
-                if (pumpAvatar) {
-                    pumpAvatar.className = "w-20 h-20 rounded-2xl bg-space-900 border-2 border-slate-700 text-slate-500 hover:border-emerald-500/60 hover:text-slate-300 flex items-center justify-center transition-all duration-500 relative shadow-xl cursor-pointer hover:scale-105 active:scale-95 group";
-                }
-                if (pumpWave) pumpWave.classList.add('hidden');
-                if (pumpGears) pumpGears.classList.add('hidden');
-                if (pumpHeadline) {
-                    pumpHeadline.innerText = "Pompa Nonaktif (Siaga)";
-                    pumpHeadline.className = "text-base font-black text-white font-mono tracking-tight mb-0.5";
-                }
-                if (pumpDesc) {
-                    pumpDesc.innerText = "Relay OFF. Otomatis menyiram jika kelembapan <35%.";
-                }
-
-                if (pumpModeBadge) {
-                    pumpModeBadge.innerText = "MODE OTOMATIS";
-                    pumpModeBadge.className = "px-2.5 py-1 text-[10px] font-mono font-bold rounded-full bg-slate-800 text-slate-300 border border-slate-700";
-                }
-
-                if (quickPumpBadge) {
-                    quickPumpBadge.innerText = "STANDBY";
-                    quickPumpBadge.className = "px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 text-slate-400 border border-slate-700";
-                }
-
-                if (quickPumpIconWrap) {
-                    quickPumpIconWrap.className = "p-3 rounded-xl bg-slate-800 text-slate-400 border border-slate-700";
-                }
-                if (quickPumpStatus) {
-                    quickPumpStatus.innerText = "Mati (Siaga)";
-                    quickPumpStatus.className = "text-lg font-black text-white font-mono tracking-tight";
-                }
-                if (quickPumpMode) {
-                    quickPumpMode.innerText = "Mode Kontrol Otomatis";
-                }
-
-                stopPumpTimer();
-                stopWateringMusic();
-
-                if (lastManualState === true) {
-                    addActivityLog("[RELAY_PUMP] Relay Pompa Air dimatikan (OFF). Kembali ke siaga otomatis.", "info");
-                    playSciFiSound('click');
-                }
-            }
-
-            if (lastManualState !== manualOn) {
-                lastManualState = manualOn;
-                lucide.createIcons();
-            }
-        }
-
-        // Toggle Manual Pump on Firebase RTDB with Dual Protocol Reliability
-        async function toggleManual() {
-            const newStatus = !isManual;
-            const pumpAvatar = document.getElementById('pump_avatar_container');
-            const quickPumpIconWrap = document.getElementById('quick_pump_icon_wrap');
-            if (pumpAvatar) pumpAvatar.classList.add('opacity-75', 'cursor-wait');
-            if (quickPumpIconWrap) quickPumpIconWrap.classList.add('opacity-75', 'cursor-wait');
-            playSciFiSound('click');
-
-            // Instant Optimistic UI update
-            isManual = newStatus;
-            updatePumpUI(newStatus);
-            triggerCanvasRedraw();
-
-            // Immediate AI Voice feedback when button is pressed
-            if (newStatus) {
-                playAIVoice("Pompa manual diaktifkan.", false);
-            } else {
-                playAIVoice("Pompa manual dimatikan.", false);
-            }
-
-            let success = false;
-
-            // 1. Try primary Firebase SDK Set
-            try {
-                await penyiramRef.child('manual').set(newStatus);
-                success = true;
-            } catch (sdkErr) {
-                console.warn("Firebase SDK write warning, attempting direct REST fallback:", sdkErr);
-            }
-
-            // 2. Direct HTTP REST fallback if SDK write delayed or blocked
-            if (!success) {
-                try {
-                    const res = await fetch(`${RTDB_BASE_URL}/manual.json`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(newStatus)
-                    });
-                    if (res.ok) {
-                        success = true;
-                    }
-                } catch (fetchErr) {
-                    console.error("Direct REST write error:", fetchErr);
-                }
-            }
-
-            if (pumpAvatar) pumpAvatar.classList.remove('opacity-75', 'cursor-wait');
-            if (quickPumpIconWrap) quickPumpIconWrap.classList.remove('opacity-75', 'cursor-wait');
-
-            if (success) {
-                showToast(newStatus ? "Pompa berhasil dinyalakan (Manual ON)" : "Pompa berhasil dimatikan (STANDBY)");
-            } else {
-                console.error("Failed to transmit manual command to cloud");
-                showToast("Peringatan: Gagal mengirim perintah ke Cloud.", "error");
-                // Rollback optimistic update on confirmed failure
-                isManual = !newStatus;
-                updatePumpUI(isManual);
-                triggerCanvasRedraw();
-            }
-        }
-
-        // Flexible Fertilizer Unit and State Management
-        let currentFertilizerUnit = 'days'; // 'hours' | 'days' | 'weeks'
-
-        function scheduleFertilizerAutoSave() {
-            clearTimeout(autoSaveFertilizerTimer);
-            autoSaveFertilizerTimer = setTimeout(() => {
-                simpanJadwalPupuk(false);
-            }, 800);
-        }
-
-        function setFertilizerUnit(unit) {
-            lastFertilizerAdjustTime = Date.now();
-            currentFertilizerUnit = unit;
-            const btnH = document.getElementById('btn_unit_hours');
-            const btnD = document.getElementById('btn_unit_days');
-            const btnW = document.getElementById('btn_unit_weeks');
-            const labelUnit = document.getElementById('label_pupuk_unit');
-            const slider = document.getElementById('slider_pupuk');
-            const minLabel = document.getElementById('slider_min_label');
-            const midLabel = document.getElementById('slider_mid_label');
-            const maxLabel = document.getElementById('slider_max_label');
-            const input = document.getElementById('input_pupuk');
-
-            // Reset active styles
-            [btnH, btnD, btnW].forEach(b => {
-                if (b) {
-                    b.className = "px-2 py-1 rounded-lg text-slate-400 hover:text-white transition-all cursor-pointer";
-                }
-            });
-
-            if (unit === 'hours') {
-                if (btnH) btnH.className = "px-2 py-1 rounded-lg bg-amber-500/20 text-amber-400 font-bold border border-amber-500/30 transition-all cursor-pointer";
-                if (labelUnit) labelUnit.innerText = "JAM";
-                if (slider) {
-                    slider.min = "1";
-                    slider.max = "72";
-                    slider.value = Math.min(72, Math.max(1, (parseInt(input.value) || 1) * 24));
-                    input.value = slider.value;
-                }
-                if (minLabel) minLabel.innerText = "1 Jam";
-                if (midLabel) midLabel.innerText = "36 Jam";
-                if (maxLabel) maxLabel.innerText = "72 Jam";
-            } else if (unit === 'weeks') {
-                if (btnW) btnW.className = "px-2 py-1 rounded-lg bg-amber-500/20 text-amber-400 font-bold border border-amber-500/30 transition-all cursor-pointer";
-                if (labelUnit) labelUnit.innerText = "MINGGU";
-                if (slider) {
-                    slider.min = "1";
-                    slider.max = "12";
-                    slider.value = Math.min(12, Math.max(1, Math.round((parseInt(input.value) || 7) / 7)));
-                    input.value = slider.value;
-                }
-                if (minLabel) minLabel.innerText = "1 Minggu";
-                if (midLabel) midLabel.innerText = "6 Minggu";
-                if (maxLabel) maxLabel.innerText = "12 Minggu";
-            } else {
-                // days
-                if (btnD) btnD.className = "px-2 py-1 rounded-lg bg-amber-500/20 text-amber-400 font-bold border border-amber-500/30 transition-all cursor-pointer";
-                if (labelUnit) labelUnit.innerText = "HARI";
-                if (slider) {
-                    slider.min = "1";
-                    slider.max = "60";
-                    slider.value = Math.min(60, Math.max(1, parseInt(input.value) || 6));
-                    input.value = slider.value;
-                }
-                if (minLabel) minLabel.innerText = "1 Hari";
-                if (midLabel) midLabel.innerText = "30 Hari";
-                if (maxLabel) maxLabel.innerText = "60 Hari";
-            }
-
-            const days = convertFertilizerToDays();
-            updateFertilizerForecast(days);
-            playSciFiSound('click');
-            scheduleFertilizerAutoSave();
-        }
-
-        function convertFertilizerToDays() {
-            const input = document.getElementById('input_pupuk');
-            const val = parseFloat(input?.value) || 1;
-            if (currentFertilizerUnit === 'hours') {
-                return Math.max(0.1, +(val / 24).toFixed(2));
-            } else if (currentFertilizerUnit === 'weeks') {
-                return val * 7;
-            }
-            return val;
-        }
-
-        function onPupukSliderChange(val) {
-            lastFertilizerAdjustTime = Date.now();
-            const input = document.getElementById('input_pupuk');
-            if (input) input.value = val;
-            const days = convertFertilizerToDays();
-            updateFertilizerForecast(days);
-            scheduleFertilizerAutoSave();
-        }
-
-        function onPupukInputChange(val) {
-            lastFertilizerAdjustTime = Date.now();
-            const slider = document.getElementById('slider_pupuk');
-            const num = parseInt(val) || 1;
-            if (slider) {
-                if (num <= parseInt(slider.max)) {
-                    slider.value = num;
-                }
-            }
-            const days = convertFertilizerToDays();
-            updateFertilizerForecast(days);
-            scheduleFertilizerAutoSave();
-        }
-
-        // Fertilizer Stepper & Presets
-        function adjustPupuk(delta) {
-            lastFertilizerAdjustTime = Date.now();
-            const input = document.getElementById('input_pupuk');
-            const slider = document.getElementById('slider_pupuk');
-            let current = parseInt(input.value) || 1;
-            const maxVal = currentFertilizerUnit === 'hours' ? 168 : (currentFertilizerUnit === 'weeks' ? 52 : 365);
-            current = Math.max(1, Math.min(maxVal, current + delta));
-            input.value = current;
-            if (slider && current <= parseInt(slider.max)) {
-                slider.value = current;
-            }
-            const days = convertFertilizerToDays();
-            updateFertilizerForecast(days);
-            playSciFiSound('click');
-            scheduleFertilizerAutoSave();
-        }
-
-        function setPresetPupuk(val, unit = 'days') {
-            lastFertilizerAdjustTime = Date.now();
-            setFertilizerUnit(unit);
-            const input = document.getElementById('input_pupuk');
-            const slider = document.getElementById('slider_pupuk');
-            if (input) input.value = val;
-            if (slider && val <= parseInt(slider.max)) slider.value = val;
-            updateFertilizerForecast(convertFertilizerToDays());
-            playSciFiSound('click');
-            simpanJadwalPupuk(true);
-        }
-
-        // Save Fertilizer Schedule to Firebase RTDB
-        function simpanJadwalPupuk(isManualClick = true) {
-            lastFertilizerAdjustTime = Date.now();
-            const input = document.getElementById('input_pupuk');
-            const statusEl = document.getElementById('status_simpan');
-            const saveBtn = document.getElementById('btn_simpan_pupuk');
-            const rawVal = parseFloat(input?.value) || 1;
-            const daysToSave = convertFertilizerToDays();
-
-            if (isManualClick) {
-                if (saveBtn) saveBtn.classList.add('opacity-75', 'cursor-wait');
-                if (statusEl) {
-                    statusEl.innerText = "TRANSMITTING TO CLOUD...";
-                    statusEl.className = "text-xs font-mono font-bold text-amber-400";
-                }
-                playSciFiSound('click');
-            }
-
-            penyiramRef.child('jadwal_pupuk').set(daysToSave)
-                .then(() => {
-                    const unitName = currentFertilizerUnit === 'hours' ? 'Jam' : (currentFertilizerUnit === 'weeks' ? 'Minggu' : 'Hari');
-                    if (isManualClick) {
-                        if (saveBtn) saveBtn.classList.remove('opacity-75', 'cursor-wait');
-                        if (statusEl) {
-                            statusEl.innerText = `✓ TERSIMPAN: SETIAP ${rawVal} ${unitName.toUpperCase()} (${daysToSave} Hari)`;
-                            statusEl.className = "text-xs font-mono font-bold text-neon-emerald glow-text-emerald";
-                        }
-                        showToast(`Jadwal pupuk ${rawVal} ${unitName} tersimpan`);
-                        addActivityLog(`[NUTRIENT] Siklus jadwal pupuk diperbarui: ${rawVal} ${unitName} (${daysToSave} hari).`, 'warn');
-
-                        setTimeout(() => {
-                            if (statusEl) statusEl.innerText = "";
-                        }, 4000);
-                    }
-                    const quickLabel = document.getElementById('quick_fertilizer_val');
-                    if (quickLabel) quickLabel.innerText = `Setiap ${daysToSave} Hari`;
-                    updateFertilizerForecast(daysToSave);
-                })
-                .catch(err => {
-                    if (isManualClick) {
-                        if (saveBtn) saveBtn.classList.remove('opacity-75', 'cursor-wait');
-                        console.error("Error simpan jadwal:", err);
-                        if (statusEl) {
-                            statusEl.innerText = "GAGAL MENYIMPAN!";
-                            statusEl.className = "text-xs font-mono font-bold text-rose-500";
-                        }
-                        showToast("Gagal menyimpan jadwal pupuk.", "error");
-                    }
-                });
-        }
-
-        // Hardware Simulator / Calibration Panel Controls
-        function toggleSimulatorMode() {
-            isSimulatorOpen = !isSimulatorOpen;
-            const panel = document.getElementById('simulator_controls');
-            const label = document.getElementById('sim_toggle_label');
-            
-            if (isSimulatorOpen) {
-                if (panel) panel.classList.remove('hidden');
-                if (label) label.innerText = "Tutup Panel Uji Coba";
-            } else {
-                if (panel) panel.classList.add('hidden');
-                if (label) label.innerText = "Mode Uji Coba Hardware";
-            }
-            playSciFiSound('click');
-        }
-
-        function handleSimSliderChange(val) {
-            document.getElementById('sim_slider_val').innerText = `${val}%`;
-        }
-
-        function setSimPreset(val) {
-            document.getElementById('sim_moisture_slider').value = val;
-            document.getElementById('sim_slider_val').innerText = `${val}%`;
-            pushSimulatedMoisture();
-        }
-
-        function pushSimulatedMoisture() {
-            const val = Number(document.getElementById('sim_moisture_slider').value);
-            let statusStr = "Ideal";
-            if (val < 35) statusStr = "Kering";
-            else if (val > 70) statusStr = "Basah/Lembab";
-
-            showToast(`Mengirim simulasi ${val}% (${statusStr})...`);
-            
-            penyiramRef.update({
-                kelembapan: val,
-                status: statusStr
-            })
-            .then(() => {
-                showToast(`Data kelembapan ${val}% berhasil disinkronisasi`);
-            })
-            .catch(err => {
-                console.error("Error push simulation:", err);
-                showToast("Gagal mengirim simulasi ke cloud.", "error");
-            });
-        }
-
-        function autoSimulateRain() {
-            setSimPreset(88);
-            showToast("Simulasi hujan: Kelembapan dinaikkan ke 88%");
-        }
-
-        // Export Data Logs to JSON / CSV
-        function exportDataLogs() {
-            const logItems = document.getElementById('activity_log_container').innerText;
-            const blob = new Blob([logItems], { type: 'text/plain;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `SmartFarming_IoT_Logs_${new Date().toISOString().slice(0,10)}.txt`;
-            a.click();
-            URL.revokeObjectURL(url);
-            showToast("Log telemetri berhasil diekspor");
-            playSciFiSound('click');
-        }
-
-        // Scroll directly to Watering Music Player
-        function scrollToMusicCard() {
-            const card = document.getElementById('watering_music_card');
-            if (card) {
-                card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                card.classList.add('ring-4', 'ring-cyan-400');
-                setTimeout(() => {
-                    card.classList.remove('ring-4', 'ring-cyan-400');
-                }, 2000);
-            }
-            playSciFiSound('click');
-        }
-
-        // Live Digital Cyber Clock
-        function startLiveClock() {
-            function updateClock() {
-                const now = new Date();
-                const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + " WIB";
-                const dateStr = now.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
-                
-                const clockTime = document.getElementById('clock_time');
-                const clockDate = document.getElementById('clock_date');
-                if (clockTime) clockTime.innerText = timeStr;
-                if (clockDate) clockDate.innerText = dateStr;
-            }
-            updateClock();
-            setInterval(updateClock, 1000);
-        }
-
-        // Initialization on DOM Ready
-        window.addEventListener('DOMContentLoaded', () => {
-            lucide.createIcons();
-            initChart();
-            initFarmCanvas();
-            startLiveClock();
-            updateFertilizerForecast(6);
-            updateMusicUI();
-            
-            // Connect to Firebase Realtime Database via WebSocket (Push-only, 0 Byte idle overhead)
-            initRealtimeListener();
         });
     </script>
 </body>
