@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIRINTIS (SISTEM PENYIRAM OTOMATIS) - Kontrol Pompa Irigasi</title>
+    
+    <!-- Fonts (Gilroy Geometric Sans Style) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Firebase Compat CDN -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', '"Outfit"', 'system-ui', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                    colors: {
+                        greenhouse: {
+                            green: '#729C51',
+                            greenLight: '#8bb966',
+                            orange: '#EB5011',
+                            blue: '#C7E0ED',
+                            dark: '#0A0909',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-image: url('bg_farm.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.82);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.08);
+        }
+        .dark .glass-panel {
+            background: rgba(10, 9, 9, 0.85);
+            border-color: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 12px 36px -10px rgba(0, 0, 0, 0.5);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            transition: all 0.2s ease;
+        }
+        .dark .glass-card {
+            background: rgba(20, 20, 22, 0.7);
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+        .glass-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(114, 156, 81, 0.4);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(114, 156, 81, 0.4);
+            border-radius: 9999px;
+        }
+    </style>
+</head>
+<body id="app_body" class="min-h-screen text-slate-800 dark:text-slate-100 antialiased p-2 sm:p-5 flex items-center justify-center">
+
+    <!-- MAIN AI GREENHOUSE GLASS CONTAINER -->
+    <div class="glass-panel w-full max-w-[1400px] min-h-[92vh] rounded-[32px] p-4 sm:p-7 flex flex-col md:flex-row gap-5 relative overflow-hidden">
+        
+        <!-- LEFT VERTICAL FLOATING TOOLBAR DOCK -->
+        <aside class="glass-card w-full md:w-16 rounded-[28px] py-4 px-3 flex md:flex-col items-center justify-between shadow-xs shrink-0">
+            <!-- Navigation Links -->
+            <div class="flex md:flex-col items-center gap-4 w-full justify-around md:justify-start">
+                <!-- Home / Overview -->
+                <a href="index.html" title="Dashboard Utama" class="w-10 h-10 rounded-2xl flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
+                    <i data-lucide="sprout" class="w-5 h-5"></i>
+                </a>
+
+                <!-- Pompa Irigasi (ACTIVE) -->
+                <a href="pompa.html" title="Kontrol Pompa Irigasi" class="w-10 h-10 rounded-2xl flex items-center justify-center bg-[#729C51] text-white shadow-md shadow-[#729C51]/30 transition-all">
+                    <i data-lucide="droplet" class="w-5 h-5"></i>
+                </a>
+
+                <!-- Monitoring Kelembapan -->
+                <a href="kelembapan.html" title="Monitoring Kelembapan Tanah" class="w-10 h-10 rounded-2xl flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
+                    <i data-lucide="sliders" class="w-5 h-5"></i>
+                </a>
+
+                <!-- Jadwal Pemupukan -->
+                <a href="pupuk.html" title="Jadwal Pemupukan Nutrisi" class="w-10 h-10 rounded-2xl flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
+                    <i data-lucide="calendar" class="w-5 h-5"></i>
+                </a>
+
+                <!-- Riwayat & Log -->
+                <a href="analisis.html" title="Riwayat & Analisis Cloud" class="w-10 h-10 rounded-2xl flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
+                    <i data-lucide="file-text" class="w-5 h-5"></i>
+                </a>
+            </div>
+
+            <!-- Bottom Dock: Theme (Profil Dihapus) -->
+            <div class="hidden md:flex flex-col items-center gap-3">
+                <button onclick="toggleTheme()" title="Ubah Tema" class="w-9 h-9 rounded-full bg-white/70 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-[#729C51] cursor-pointer">
+                    <i id="theme_icon" data-lucide="moon" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </aside>
+
+        <!-- MAIN SUBSYSTEM CONTENT AREA -->
+        <main class="flex-1 flex flex-col gap-5 overflow-y-auto custom-scrollbar">
+            
+            <!-- TOP BAR (SIRINTIS SISTEM PENYIRAM OTOMATIS) -->
+            <header class="flex items-center justify-between gap-4 flex-wrap">
+                <div class="flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center shadow-xs text-[#729C51]">
+                        <i data-lucide="droplet" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">SIRINTIS</h1>
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#729C51]/15 text-[#729C51] uppercase tracking-wide">Relay Aktif</span>
+                        </div>
+                        <p class="text-xs font-semibold text-[#729C51] dark:text-[#8bb966]">SISTEM PENYIRAM OTOMATIS &bull; Modul Kontrol Pompa Irigasi</p>
+                    </div>
+                </div>
+
+                <!-- Right Action Buttons -->
+                <div class="flex items-center gap-2">
+                    <button onclick="window.location.href='index.html'" title="Kembali ke Dashboard Utama" class="px-3.5 py-2 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-[#729C51] flex items-center gap-1 transition-all shadow-xs">
+                        <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i>
+                        <span>Overview</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- PUMP HERO CONTROLLER & TELEMETRY ROW -->
+            <div class="w-full">
+                
+                <!-- PRIMARY PUMP CONTROL PANEL -->
+                <div class="glass-card rounded-[28px] p-6 sm:p-8 flex flex-col justify-between gap-6 relative overflow-hidden">
+                    
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <span class="text-xs font-bold text-[#729C51] uppercase tracking-wider block">Status Relay Solenoid</span>
+                            <h2 id="pump_headline" class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">Pompa Siaga (Standby)</h2>
+                            <p id="pump_description" class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                Mode otomatis aktif. Pompa akan menyiram otomatis saat kelembapan tanah &lt;35%.
+                            </p>
+                        </div>
+
+                        <!-- Big Tactile Switch -->
+                        <button id="pump_smart_switch" onclick="toggleManual()" class="w-16 h-8 rounded-full p-1 transition-colors duration-300 relative focus:outline-none cursor-pointer flex items-center bg-slate-300 dark:bg-slate-700 shadow-inner" title="Sakelar Pompa">
+                            <div id="pump_switch_knob" class="w-6 h-6 rounded-full bg-white shadow-md transform transition-transform duration-300 flex items-center justify-center translate-x-0">
+                                <i id="pump_switch_icon" data-lucide="power" class="w-3.5 h-3.5 text-slate-400"></i>
+                            </div>
+                        </button>
+                    </div>
+
+                    <!-- Live Water Volume & Duration Stats -->
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                        <div class="p-4 rounded-2xl bg-white/60 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+                            <span class="text-[10px] text-slate-400 uppercase font-semibold block">Total Air Sesi Ini</span>
+                            <span id="pump_live_liters" class="text-xl sm:text-2xl font-extrabold text-[#729C51] font-mono">0.000 L</span>
+                            <span class="text-[10px] text-slate-500 block mt-0.5">Tereset otomatis saat OFF</span>
+                        </div>
+                        <div class="p-4 rounded-2xl bg-white/60 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+                            <span class="text-[10px] text-slate-400 uppercase font-semibold block">Durasi Berjalan</span>
+                            <span id="pump_running_timer" class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white font-mono">00:00</span>
+                            <span id="pump_timer_sub" class="text-[10px] text-slate-500 block mt-0.5">Batas waktu maks 30 menit</span>
+                        </div>
+                        <div class="p-4 rounded-2xl bg-white/60 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 col-span-2 sm:col-span-1">
+                            <span class="text-[10px] text-slate-400 uppercase font-semibold block">Kelembapan Terkini</span>
+                            <span id="moisture_display" class="text-xl sm:text-2xl font-extrabold text-[#729C51] font-mono">--%</span>
+                            <span id="status_display" class="text-[10px] text-slate-500 block mt-0.5">Memuat sensor...</span>
+                        </div>
+                    </div>
+
+                    <!-- Scroll Bar Kendali Pompa Berdasarkan Waktu (Maksimal 30 Menit) -->
+                    <div class="p-5 rounded-2xl bg-white/70 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/80">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center gap-2">
+                                <i data-lucide="timer" class="w-4 h-4 text-[#729C51]"></i>
+                                <span class="text-xs font-bold text-slate-800 dark:text-slate-200">Scroll Bar Waktu Pompa:</span>
+                            </div>
+                            <span id="slider_status_pill" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold font-mono bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
+                                0 Menit (MATI / OFF)
+                            </span>
+                        </div>
+
+                        <!-- Range Slider Input (0 sampai 30 Menit) -->
+                        <div class="relative flex items-center my-3">
+                            <input type="range" id="pump_control_slider" min="0" max="30" value="0" step="1" 
+                                oninput="handlePumpSliderInput(this.value)"
+                                onchange="handlePumpSliderChange(this.value)"
+                                class="w-full h-3 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-[#729C51] transition-all">
+                        </div>
+
+                        <!-- Labels beneath scroll bar (0 s/d 30 menit) -->
+                        <div class="flex items-center justify-between text-[11px] font-bold text-slate-400 mt-2 select-none flex-wrap gap-1">
+                            <button type="button" onclick="setPumpViaSlider(0)" class="hover:text-red-500 transition-colors cursor-pointer flex items-center gap-1 text-[11px]">
+                                <i data-lucide="power-off" class="w-3 h-3"></i>
+                                <span>0 Mnt (OFF)</span>
+                            </button>
+                            <button type="button" onclick="setPumpViaSlider(5)" class="hover:text-[#729C51] transition-colors cursor-pointer px-1.5 py-0.5 rounded hover:bg-slate-100 dark:hover:bg-slate-700">
+                                5 Mnt
+                            </button>
+                            <button type="button" onclick="setPumpViaSlider(10)" class="hover:text-[#729C51] transition-colors cursor-pointer px-1.5 py-0.5 rounded hover:bg-slate-100 dark:hover:bg-slate-700">
+                                10 Mnt
+                            </button>
+                            <button type="button" onclick="setPumpViaSlider(15)" class="hover:text-[#729C51] transition-colors cursor-pointer px-1.5 py-0.5 rounded hover:bg-slate-100 dark:hover:bg-slate-700">
+                                15 Mnt
+                            </button>
+                            <button type="button" onclick="setPumpViaSlider(20)" class="hover:text-[#729C51] transition-colors cursor-pointer px-1.5 py-0.5 rounded hover:bg-slate-100 dark:hover:bg-slate-700">
+                                20 Mnt
+                            </button>
+                            <button type="button" onclick="setPumpViaSlider(30)" class="hover:text-[#729C51] transition-colors cursor-pointer flex items-center gap-1 text-[11px]">
+                                <i data-lucide="power" class="w-3 h-3 text-[#729C51]"></i>
+                                <span>30 Mnt (Maks)</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ACTIVATION HISTORY & EVENT LOG TABLE -->
+            <div class="glass-card rounded-[28px] p-6 space-y-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="history" class="w-4 h-4 text-[#729C51]"></i>
+                        <h3 class="text-sm font-bold text-slate-900 dark:text-white">Riwayat Pengoperasian Pompa</h3>
+                    </div>
+                    <span class="text-xs text-slate-400">Sinkronisasi Cloud Realtime</span>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-600 dark:text-slate-300">
+                        <thead class="text-[10px] uppercase text-slate-400 bg-slate-50/50 dark:bg-slate-800/50">
+                            <tr>
+                                <th class="py-2.5 px-3 rounded-l-xl">Waktu</th>
+                                <th class="py-2.5 px-3">Metode</th>
+                                <th class="py-2.5 px-3">Durasi</th>
+                                <th class="py-2.5 px-3">Estimasi Air</th>
+                                <th class="py-2.5 px-3 rounded-r-xl">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pump_history_tbody" class="divide-y divide-slate-100 dark:divide-slate-800">
+                            <tr>
+                                <td class="py-3 px-3 font-mono">10:02:14 WIB</td>
+                                <td class="py-3 px-3 font-semibold text-[#729C51]">Sistem Otomatis (Sensor &lt;35%)</td>
+                                <td class="py-3 px-3">60 Detik</td>
+                                <td class="py-3 px-3 font-mono font-bold">2.4 Liter</td>
+                                <td class="py-3 px-3"><span class="px-2 py-0.5 rounded-full text-[9px] bg-emerald-100 text-emerald-800 font-bold">SELESAI</span></td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-3 font-mono">08:15:00 WIB</td>
+                                <td class="py-3 px-3">Manual Sakelar Petani</td>
+                                <td class="py-3 px-3">180 Detik</td>
+                                <td class="py-3 px-3 font-mono font-bold">7.2 Liter</td>
+                                <td class="py-3 px-3"><span class="px-2 py-0.5 rounded-full text-[9px] bg-emerald-100 text-emerald-800 font-bold">SELESAI</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="fixed top-6 right-6 z-50 transform -translate-y-12 opacity-0 transition-all duration-300 pointer-events-none flex items-center gap-2 px-4 py-2.5 bg-slate-900 text-white rounded-2xl shadow-lg text-xs font-medium">
+        <i id="toast_icon" data-lucide="check-circle" class="w-4 h-4 text-[#729C51]"></i>
+        <span id="toast_message">Notifikasi</span>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script>
+        // Firebase Config
+        const firebaseConfig = {
+            databaseURL: "https://smart-watering-nz-default-rtdb.asia-southeast1.firebasedatabase.app"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const rtdb = firebase.database();
+        const penyiramRef = rtdb.ref('penyiram');
+
+        let isManual = false;
+        let pumpStartTime = null;
+        let pumpTimerInterval = null;
+        let totalWaterLiters = 6.75;
+        let chart = null;
+
+        let targetDurationMinutes = 0;
+        let autoStopTimeout = null;
+        let lastUserActionTime = 0;
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast_message').innerText = msg;
+            toast.classList.remove('-translate-y-12', 'opacity-0');
+            setTimeout(() => toast.classList.add('-translate-y-12', 'opacity-0'), 3000);
+        }
+
+        function savePumpSyncState(manual, durasi, startTimeVal) {
+            try {
+                localStorage.setItem('sirintis_pump_sync', JSON.stringify({
+                    manual: !!manual,
+                    durasi: Number(durasi) || 0,
+                    startTime: startTimeVal !== undefined ? startTimeVal : (manual ? (pumpStartTime || Date.now()) : 0),
+                    timestamp: Date.now()
+                }));
+            } catch (e) {}
+        }
+
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'sirintis_pump_sync' && e.newValue) {
+                try {
+                    const state = JSON.parse(e.newValue);
+                    if (state.manual !== undefined) {
+                        isManual = state.manual;
+                        if (state.manual && state.startTime) {
+                            pumpStartTime = state.startTime;
+                        }
+                        updatePumpUI(state.manual, state.durasi || 0, state.startTime);
+                    }
+                } catch (err) {}
+            }
+        });
+
+        function updatePumpUI(manualOn, durasiVal, startTimeVal) {
+            const sw = document.getElementById('pump_smart_switch');
+            const knob = document.getElementById('pump_switch_knob');
+            const icon = document.getElementById('pump_switch_icon');
+            const headline = document.getElementById('pump_headline');
+            const desc = document.getElementById('pump_description');
+            const slider = document.getElementById('pump_control_slider');
+            const pill = document.getElementById('slider_status_pill');
+            const timerSub = document.getElementById('pump_timer_sub');
+
+            if (manualOn) {
+                sw.className = "w-16 h-8 rounded-full p-1 transition-colors duration-300 relative focus:outline-none cursor-pointer flex items-center bg-[#729C51] shadow-md shadow-[#729C51]/30";
+                knob.className = "w-6 h-6 rounded-full bg-white shadow-md transform transition-transform duration-300 flex items-center justify-center translate-x-8";
+                icon.className = "w-3.5 h-3.5 text-[#729C51]";
+                headline.innerText = "Pompa Aktif Menyiram";
+                headline.className = "text-2xl sm:text-3xl font-extrabold text-[#729C51]";
+                
+                if (durasiVal !== undefined && Number(durasiVal) > 0) {
+                    targetDurationMinutes = Number(durasiVal);
+                } else if (targetDurationMinutes === 0) {
+                    targetDurationMinutes = slider && Number(slider.value) > 0 ? Number(slider.value) : 10;
+                }
+                if (slider) slider.value = targetDurationMinutes;
+
+                // Sinkronisasi pumpStartTime agar tidak reset ke 0 saat berpindah halaman
+                if (startTimeVal && typeof startTimeVal === 'number' && startTimeVal > 0) {
+                    pumpStartTime = startTimeVal;
+                } else if (!pumpStartTime) {
+                    try {
+                        const saved = JSON.parse(localStorage.getItem('sirintis_pump_sync') || '{}');
+                        if (saved.startTime && saved.startTime > 0) {
+                            pumpStartTime = saved.startTime;
+                        }
+                    } catch(e) {}
+                    if (!pumpStartTime) pumpStartTime = Date.now();
+                }
+                
+                desc.innerText = `Relay ON. Menyiram aktif dengan target ${targetDurationMinutes} Menit.`;
+                if (pill) {
+                    pill.innerText = `${targetDurationMinutes} Menit (MENYIRAM / ON)`;
+                    pill.className = "px-2.5 py-0.5 rounded-full text-[11px] font-bold font-mono bg-[#729C51] text-white animate-pulse";
+                }
+                startPumpTimer();
+            } else {
+                sw.className = "w-16 h-8 rounded-full p-1 transition-colors duration-300 relative focus:outline-none cursor-pointer flex items-center bg-slate-300 dark:bg-slate-700 shadow-inner";
+                knob.className = "w-6 h-6 rounded-full bg-white shadow-md transform transition-transform duration-300 flex items-center justify-center translate-x-0";
+                icon.className = "w-3.5 h-3.5 text-slate-400";
+                headline.innerText = "Pompa Siaga (Standby)";
+                headline.className = "text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white";
+                desc.innerText = "Mode otomatis aktif. Pompa akan menyiram otomatis saat kelembapan tanah <35%.";
+                
+                targetDurationMinutes = 0;
+                pumpStartTime = null;
+                if (slider) slider.value = 0;
+                if (pill) {
+                    pill.innerText = "0 Menit (MATI / OFF)";
+                    pill.className = "px-2.5 py-0.5 rounded-full text-[11px] font-bold font-mono bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300";
+                }
+                if (timerSub) {
+                    timerSub.innerText = "Batas waktu maks 30 menit";
+                }
+                if (autoStopTimeout) {
+                    clearTimeout(autoStopTimeout);
+                    autoStopTimeout = null;
+                }
+                stopPumpTimer();
+            }
+        }
+
+        async function toggleManual() {
+            lastUserActionTime = Date.now();
+            if (isManual) {
+                // Matikan Pompa Segera
+                if (autoStopTimeout) {
+                    clearTimeout(autoStopTimeout);
+                    autoStopTimeout = null;
+                }
+                pumpStartTime = null;
+                isManual = false;
+                targetDurationMinutes = 0;
+                updatePumpUI(false, 0, 0);
+                savePumpSyncState(false, 0, 0);
+                try {
+                    await penyiramRef.update({ manual: false, durasi: 0, startTime: 0 });
+                    showToast("Pompa irigasi BERHASIL DIMATIKAN (STANDBY)");
+                } catch (e) {
+                    console.error("Gagal update rtdb:", e);
+                }
+            } else {
+                // Nyalakan Pompa
+                const targetM = targetDurationMinutes > 0 ? targetDurationMinutes : 10;
+                targetDurationMinutes = targetM;
+                isManual = true;
+                pumpStartTime = Date.now();
+                updatePumpUI(true, targetM, pumpStartTime);
+                savePumpSyncState(true, targetM, pumpStartTime);
+                try {
+                    await penyiramRef.update({ manual: true, durasi: targetM, startTime: pumpStartTime });
+                    showToast(`Pompa manual diaktifkan (ON \u2022 ${targetM} Menit)`);
+                } catch (e) {
+                    console.error("Gagal update rtdb:", e);
+                }
+                if (autoStopTimeout) clearTimeout(autoStopTimeout);
+                autoStopTimeout = setTimeout(() => {
+                    autoStopPumpByTimer();
+                }, targetM * 60 * 1000);
+            }
+        }
+
+        function handlePumpSliderInput(val) {
+            const mins = Number(val);
+            const pill = document.getElementById('slider_status_pill');
+            if (mins === 0) {
+                if (pill) {
+                    pill.innerText = "0 Menit (MATI / OFF)";
+                    pill.className = "px-2.5 py-0.5 rounded-full text-[11px] font-bold font-mono bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300";
+                }
+            } else {
+                if (pill) {
+                    pill.innerText = `${mins} Menit (MENYIRAM / ON)`;
+                    pill.className = "px-2.5 py-0.5 rounded-full text-[11px] font-bold font-mono bg-[#729C51] text-white animate-pulse";
+                }
+            }
+        }
+
+        async function autoStopPumpByTimer() {
+            isManual = false;
+            targetDurationMinutes = 0;
+            updatePumpUI(false, 0);
+            savePumpSyncState(false, 0);
+            try {
+                await penyiramRef.update({ manual: false, durasi: 0 });
+                showToast("Waktu penyiraman selesai. Pompa otomatis DIMATIKAN.");
+            } catch (e) {
+                console.error("Gagal stop pompa di rtdb:", e);
+            }
+        }
+
+        async function handlePumpSliderChange(val) {
+            lastUserActionTime = Date.now();
+            const mins = Number(val);
+            
+            if (autoStopTimeout) {
+                clearTimeout(autoStopTimeout);
+                autoStopTimeout = null;
+            }
+
+            if (mins > 0) {
+                targetDurationMinutes = mins;
+                isManual = true;
+                pumpStartTime = Date.now(); // Reset waktu mulai agar durasi dihitung penuh dari saat slider diset
+                updatePumpUI(true, mins);
+                savePumpSyncState(true, mins);
+                try {
+                    await penyiramRef.update({ manual: true, durasi: mins });
+                    showToast(`Timer diatur ke ${mins} Menit. Pompa otomatis mati setelah ${mins} menit.`);
+                } catch (e) {
+                    console.error(e);
+                }
+
+                autoStopTimeout = setTimeout(() => {
+                    autoStopPumpByTimer();
+                }, mins * 60 * 1000);
+            } else {
+                targetDurationMinutes = 0;
+                isManual = false;
+                updatePumpUI(false, 0);
+                savePumpSyncState(false, 0);
+                try {
+                    await penyiramRef.update({ manual: false, durasi: 0 });
+                    showToast("Pompa DIMATIKAN (Durasi 0 Menit)");
+                } catch (e) {
+                    console.error(e);
+                }
+            }
+        }
+
+        function setPumpViaSlider(targetVal) {
+            const slider = document.getElementById('pump_control_slider');
+            if (slider) slider.value = targetVal;
+            handlePumpSliderInput(targetVal);
+            handlePumpSliderChange(targetVal);
+        }
+
+        function logCompletedSession(durationSeconds, waterLiters) {
+            const tbody = document.getElementById('pump_history_tbody');
+            if (!tbody || durationSeconds < 2) return;
+            const now = new Date();
+            const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')} WIB`;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="py-3 px-3 font-mono">${timeStr}</td>
+                <td class="py-3 px-3 font-semibold text-[#729C51]">Manual / Timer Pompa</td>
+                <td class="py-3 px-3">${durationSeconds} Detik</td>
+                <td class="py-3 px-3 font-mono font-bold">${waterLiters.toFixed(2)} Liter</td>
+                <td class="py-3 px-3"><span class="px-2 py-0.5 rounded-full text-[9px] bg-emerald-100 text-emerald-800 font-bold">SELESAI</span></td>
+            `;
+            tbody.insertBefore(tr, tbody.firstChild);
+        }
+
+        function startPumpTimer() {
+            if (!pumpStartTime) {
+                try {
+                    const saved = JSON.parse(localStorage.getItem('sirintis_pump_sync') || '{}');
+                    if (saved.startTime && saved.startTime > 0) {
+                        pumpStartTime = saved.startTime;
+                    }
+                } catch(e) {}
+                if (!pumpStartTime) pumpStartTime = Date.now();
+            }
+
+            const updateTick = () => {
+                const diff = Math.max(0, Math.floor((Date.now() - pumpStartTime) / 1000));
+                const m = String(Math.floor(diff / 60)).padStart(2, '0');
+                const s = String(diff % 60).padStart(2, '0');
+                
+                if (targetDurationMinutes > 0) {
+                    const targetSeconds = targetDurationMinutes * 60;
+                    const remainingSeconds = Math.max(0, targetSeconds - diff);
+                    const remMin = Math.floor(remainingSeconds / 60);
+                    const remSec = remainingSeconds % 60;
+                    const targetM = String(targetDurationMinutes).padStart(2, '0');
+                    
+                    document.getElementById('pump_running_timer').innerText = `${m}:${s} / ${targetM}:00`;
+                    
+                    const timerSub = document.getElementById('pump_timer_sub');
+                    if (timerSub) {
+                        if (remainingSeconds > 0) {
+                            timerSub.innerText = `Sisa: ${remMin > 0 ? remMin + ' mnt ' : ''}${remSec} dtk (Target ${targetDurationMinutes} Mnt)`;
+                        } else {
+                            timerSub.innerText = "Waktu selesai, mematikan pompa...";
+                        }
+                    }
+
+                    // AUTO-STOP: Jika waktu tercapai atau terlampaui, matikan pompa seketika!
+                    if (diff >= targetSeconds) {
+                        logCompletedSession(diff, totalWaterLiters);
+                        autoStopPumpByTimer();
+                        return;
+                    }
+                } else {
+                    document.getElementById('pump_running_timer').innerText = `${m}:${s}`;
+                }
+                
+                // Akumulasi volume air riil berdasarkan waktu aktif penyiraman
+                totalWaterLiters = Math.max(totalWaterLiters, (diff * (100 / 3600)));
+                document.getElementById('pump_live_liters').innerText = `${totalWaterLiters.toFixed(3)} L`;
+            };
+
+            // Jalankan 1 kali secara instan agar tidak menunggu 1 detik
+            updateTick();
+
+            if (pumpTimerInterval) clearInterval(pumpTimerInterval);
+            pumpTimerInterval = setInterval(updateTick, 1000);
+        }
+
+        function stopPumpTimer() {
+            if (pumpTimerInterval) clearInterval(pumpTimerInterval);
+            pumpTimerInterval = null;
+            pumpStartTime = null;
+            totalWaterLiters = 0;
+            document.getElementById('pump_live_liters').innerText = '0.000 L';
+            document.getElementById('pump_running_timer').innerText = '00:00';
+        }
+
+        function toggleTheme() {
+            document.documentElement.classList.toggle('dark');
+            const icon = document.getElementById('theme_icon');
+            if (document.documentElement.classList.contains('dark')) {
+                icon.setAttribute('data-lucide', 'sun');
+            } else {
+                icon.setAttribute('data-lucide', 'moon');
+            }
+            lucide.createIcons();
+        }
+
+        // Fast initial REST fetch fallback dengan cache-busting
+        fetch("https://smart-watering-nz-default-rtdb.asia-southeast1.firebasedatabase.app/penyiram.json?_t=" + Date.now(), {
+            cache: 'no-store'
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.manual !== undefined && (Date.now() - lastUserActionTime > 2500)) {
+                    const manualState = data.manual === true;
+                    const durasi = Number(data.durasi) || 0;
+                    const startTime = Number(data.startTime) || 0;
+                    isManual = manualState;
+                    if (manualState && startTime > 0) pumpStartTime = startTime;
+                    updatePumpUI(manualState, manualState ? (durasi > 0 ? durasi : 10) : 0, startTime);
+                }
+            })
+            .catch(console.error);
+
+        // RTDB Listener dengan Sinkronisasi Waktu Antar Halaman
+        penyiramRef.on('value', (snap) => {
+            const data = snap.val() || {};
+            if (data.manual !== undefined && (Date.now() - lastUserActionTime > 2500)) {
+                const manualState = data.manual === true;
+                const durasi = Number(data.durasi) || 0;
+                const startTime = Number(data.startTime) || 0;
+                isManual = manualState;
+                if (manualState && startTime > 0) pumpStartTime = startTime;
+                updatePumpUI(manualState, manualState ? (durasi > 0 ? durasi : 10) : 0, startTime);
+            }
+            if (data.kelembapan !== undefined) {
+                document.getElementById('moisture_display').innerText = `${data.kelembapan}%`;
+                document.getElementById('status_display').innerText = data.status || 'Optimal';
+            }
+        });
+
+        // Pulihkan status pompa seketika dari cache lokal saat halaman dimuat
+        try {
+            const initialSync = JSON.parse(localStorage.getItem('sirintis_pump_sync') || '{}');
+            if (initialSync.manual) {
+                isManual = true;
+                pumpStartTime = initialSync.startTime || Date.now();
+                targetDurationMinutes = initialSync.durasi || 10;
+                updatePumpUI(true, targetDurationMinutes, pumpStartTime);
+            }
+        } catch(e) {}
+
+        // Inisialisasi Ikon Lucide
+        window.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+        });
+    </script>
+</body>
+</html>

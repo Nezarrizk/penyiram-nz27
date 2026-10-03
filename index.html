@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIRINTIS (SISTEM PENYIRAM OTOMATIS)</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- GSAP for Smooth Counter and UI Animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    
+    <!-- Firebase Compat CDN -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', '"Outfit"', 'system-ui', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                    colors: {
+                        greenhouse: {
+                            green: '#729C51',
+                            greenLight: '#8bb966',
+                            orange: '#EB5011',
+                            blue: '#C7E0ED',
+                            dark: '#0A0909',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-image: url('bg_farm.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+        }
+
+        .glass-window {
+            background: rgba(255, 255, 255, 0.82);
+            border: 1px solid rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.12);
+        }
+        .dark .glass-window {
+            background: rgba(10, 9, 9, 0.88);
+            border-color: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 25px 70px -15px rgba(0, 0, 0, 0.6);
+        }
+
+        .bento-card {
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            transition: all 0.25s ease;
+        }
+        .dark .bento-card {
+            background: rgba(20, 20, 24, 0.8);
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+        .bento-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+            border-color: rgba(114, 156, 81, 0.35);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(114, 156, 81, 0.35);
+            border-radius: 9999px;
+        }
+
+        #growth_rate_val {
+            font-variant-numeric: tabular-nums;
+            display: inline-block;
+            will-change: transform, opacity;
+        }
+    </style>
+</head>
+<body id="app_body" class="min-h-screen text-slate-800 dark:text-slate-100 antialiased p-2 sm:p-5 flex items-center justify-center">
+
+    <!-- MAIN SIRINTIS GLASS CONTAINER -->
+    <div class="glass-window w-full max-w-[1440px] min-h-[92vh] rounded-[32px] p-4 sm:p-6 flex flex-col md:flex-row gap-5 relative overflow-hidden">
+        
+        <!-- LEFT VERTICAL FLOATING TOOLBAR DOCK (Tanpa Profil) -->
+        <aside class="bento-card w-full md:w-16 rounded-[28px] py-4 px-2.5 flex md:flex-col items-center justify-between shadow-xs shrink-0">
+            <!-- Subsystem Navigation Links -->
+            <div class="flex md:flex-col items-center gap-3.5 w-full justify-around md:justify-start">
+                
+                <!-- 1. Home / Overview (ACTIVE) -->
+                <a href="index.html" title="Dashboard Utama" class="w-10 h-10 rounded-2xl flex items-center justify-center bg-[#729C51] text-white shadow-md shadow-[#729C51]/30 transition-all">
+                    <i data-lucide="sprout" class="w-5 h-5"></i>
+                </a>
+
+                <!-- 2. Pompa Irigasi -->
+                <a href="pompa.html" title="Kontrol Pompa Irigasi" class="w-10 h-10 rounded-2xl flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
+                    <i data-lucide="droplet" class="w-5 h-5"></i>
+                </a>
+
+                <!-- 3. Monitoring Kelembapan -->
+                <a href="kelembapan.html" title="Monitoring Kelembapan Tanah" class="w-10 h-10 rounded-2xl flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
+                    <i data-lucide="sliders" class="w-5 h-5"></i>
+                </a>
+
+                <!-- 4. Jadwal Pemupukan -->
+                <a href="pupuk.html" title="Jadwal Pemupukan Nutrisi" class="w-10 h-10 rounded-2xl flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
+                    <i data-lucide="calendar" class="w-5 h-5"></i>
+                </a>
+
+                <!-- 5. Riwayat & Log -->
+                <a href="analisis.html" title="Riwayat Telemetri & Analisis Cloud" class="w-10 h-10 rounded-2xl flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
+                    <i data-lucide="file-text" class="w-5 h-5"></i>
+                </a>
+            </div>
+
+            <!-- Bottom Dock: Pengaturan & Tema (Profil Pengguna Dihapus Sesuai Permintaan) -->
+            <div class="hidden md:flex flex-col items-center gap-3">
+                <button onclick="toggleTheme()" title="Ubah Tema (Gelap/Terang)" class="w-9 h-9 rounded-full bg-white/70 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-[#729C51] cursor-pointer transition-all">
+                    <i id="theme_icon" data-lucide="moon" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </aside>
+
+        <!-- MAIN DASHBOARD CONTENT AREA -->
+        <main class="flex-1 flex flex-col gap-5 overflow-y-auto custom-scrollbar">
+            
+            <!-- TOP BAR (Judul: SIRINTIS - SISTEM PENYIRAM OTOMATIS) -->
+            <header class="flex items-center justify-between gap-4 flex-wrap">
+                <!-- Brand Title -->
+                <div class="flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center shadow-xs text-[#729C51]">
+                        <i data-lucide="droplet" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight leading-tight">SIRINTIS</h1>
+                        <p class="text-xs font-bold text-[#729C51] dark:text-[#8bb966] tracking-wide">SISTEM PENYIRAM OTOMATIS</p>
+                    </div>
+                </div>
+
+                <!-- Center: Status Koneksi IoT Ringkas -->
+                <div class="hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs shadow-xs">
+                    <span class="w-2.5 h-2.5 rounded-full bg-[#729C51] animate-pulse"></span>
+                    <span class="font-semibold text-slate-700 dark:text-slate-300">IoT Cloud Online:</span>
+                    <span class="text-slate-500 dark:text-slate-400">ESP32 &bull; RTDB Terhubung</span>
+                </div>
+
+                <!-- Right Tool Buttons -->
+                <div class="flex items-center gap-2">
+                    <!-- Tombol Sinkronisasi Sensor RTDB -->
+                    <button onclick="fetchLatestData()" title="Sinkronisasi Data Sensor RTDB" class="px-3 py-2 rounded-full bg-white/80 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-[#729C51] flex items-center gap-1.5 transition-all cursor-pointer shadow-xs">
+                        <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-[#729C51]"></i>
+                        <span class="hidden sm:inline">Sinkronisasi</span>
+                    </button>
+
+                    <!-- Download / Riwayat -->
+                    <button onclick="window.location.href='analisis.html'" title="Riwayat Telemetri" class="w-9 h-9 rounded-full bg-white/80 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-[#729C51] transition-all cursor-pointer shadow-xs">
+                        <i data-lucide="download" class="w-4 h-4"></i>
+                    </button>
+
+                    <!-- Mobile Theme Switch -->
+                    <button onclick="toggleTheme()" title="Ubah Tema" class="md:hidden w-9 h-9 rounded-full bg-white/80 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-[#729C51] transition-all cursor-pointer shadow-xs">
+                        <i id="theme_icon_mobile" data-lucide="moon" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- BENTO GRID (Tata Letak Seimbang & Terkoordinasi) -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+                
+                <!-- 1. HERO KONDISI TANAMAN & KESEHATAN (Spans 7 Cols) -->
+                <div class="lg:col-span-7 rounded-[28px] h-80 sm:h-96 relative overflow-hidden shadow-xs border border-white/80 dark:border-slate-800 flex items-center justify-center group">
+                    <!-- Foto Latar Belakang Tanaman Kebun -->
+                    <img src="greenhouse_crop.jpg" alt="Pertanian Tanaman SIRINTIS" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                    
+                    <!-- Overlay Gradien Lembut -->
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/15"></div>
+
+                    <!-- Floating Frosted Glassmorphism Card: Status Pertumbuhan Tanaman -->
+                    <div class="relative z-10 bento-card rounded-[24px] p-6 min-w-[240px] sm:min-w-[280px] text-center shadow-xl flex flex-col items-center gap-3">
+                        <div class="w-full flex items-center justify-between text-slate-800 dark:text-slate-200">
+                            <div class="flex items-center gap-1.5 font-bold text-xs">
+                                <i data-lucide="sprout" class="w-4 h-4 text-[#729C51]"></i>
+                                <span>Status Tanaman</span>
+                            </div>
+                            <span id="harvest_kelembapan_badge" class="px-2.5 py-0.5 rounded-full text-[11px] font-mono bg-[#729C51]/20 text-[#729C51] font-bold">81% Lembap</span>
+                        </div>
+
+                        <!-- Circular Progress Arc -->
+                        <div class="relative w-28 h-28 flex items-center justify-center my-1">
+                            <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="40" stroke="currentColor" stroke-width="7" class="text-slate-200/80 dark:text-slate-700/80 fill-none" />
+                                <circle id="harvest_circle" cx="50" cy="50" r="40" stroke="#729C51" stroke-width="7" stroke-dasharray="251" stroke-dashoffset="50" stroke-linecap="round" class="fill-none transition-all duration-700" />
+                            </svg>
+                            <div class="absolute flex flex-col items-center justify-center">
+                                <span id="harvest_percent" class="text-2xl font-extrabold text-slate-900 dark:text-white font-mono">80%</span>
+                                <span class="text-[9px] font-semibold text-slate-400">Pertumbuhan</span>
+                            </div>
+                        </div>
+
+                        <span id="harvest_status" class="text-xs font-bold text-slate-700 dark:text-slate-200">Kondisi Pertumbuhan Prima</span>
+                        <p class="text-[10px] text-slate-500 dark:text-slate-400 max-w-[220px]">Kadar air tanah optimal mendukung serapan nutrisi tanaman.</p>
+                    </div>
+                </div>
+
+                <!-- 2. WATER FLOW & GABUNGAN TOMBOL PENYIRAM (Spans 5 Cols - Simple & Terpadu) -->
+                <div class="lg:col-span-5 bento-card rounded-[28px] p-6 flex flex-col justify-between gap-4">
+                    <!-- Header Kartu -->
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-xl bg-[#729C51]/15 text-[#729C51] flex items-center justify-center">
+                                <i data-lucide="droplet" class="w-4 h-4"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-bold text-slate-900 dark:text-white">Water Flow &amp; Pompa</h3>
+                                <p class="text-[10px] text-slate-400">Debit &amp; Akumulasi Volume Air</p>
+                            </div>
+                        </div>
+                        <a href="pompa.html" title="Buka Detail Pompa" class="text-slate-400 hover:text-[#729C51] transition-colors p-1">
+                            <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
+                        </a>
+                    </div>
+
+                    <!-- Indikator Angka & Debit Air (L/H) -->
+                    <div class="p-4 rounded-2xl bg-white/60 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800/80">
+                        <div class="grid grid-cols-2 gap-3 items-center">
+                            <!-- Total Air (Tereset jika pompa dimatikan) -->
+                            <div>
+                                <div class="flex items-center gap-1 text-[11px] font-semibold text-slate-400">
+                                    <span>Total Air Sesi Ini</span>
+                                </div>
+                                <div class="flex items-baseline gap-1 mt-0.5">
+                                    <span id="water_flow_val" class="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white font-mono tracking-tight">0.000</span>
+                                    <span class="text-xs font-bold text-slate-400 font-mono">Liter</span>
+                                </div>
+                                <span class="text-[9px] text-slate-400 dark:text-slate-500 block mt-0.5">Tereset saat pompa OFF</span>
+                            </div>
+
+                            <!-- Laju Debit (80 - 120 L/H) -->
+                            <div class="text-right border-l border-slate-200/60 dark:border-slate-700/60 pl-3">
+                                <span class="text-[11px] font-semibold text-slate-400 block">Laju Debit (L/H)</span>
+                                <div class="mt-0.5">
+                                    <span id="water_flow_rate" class="text-2xl sm:text-3xl font-black text-[#729C51] font-mono">0.0 L/H</span>
+                                </div>
+                                <span class="text-[9px] font-semibold text-slate-500 dark:text-slate-400 block mt-0.5">Rentang: 80 - 120 L/H</span>
+                            </div>
+                        </div>
+
+                        <!-- Status Badge Pompa -->
+                        <div class="mt-3 pt-2.5 border-t border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between text-xs">
+                            <span class="text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                                <span id="pump_indicator_dot" class="w-2 h-2 rounded-full bg-slate-400"></span>
+                                <span>Status Pompa:</span>
+                            </span>
+                            <span id="water_pump_badge" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">Siaga (Standby)</span>
+                        </div>
+                    </div>
+
+                    <!-- TOMBOL GABUNGAN PENYIRAM (Prominent & Simple Action Button) -->
+                    <div class="flex flex-col gap-2">
+                        <button id="main_water_btn" onclick="quickTogglePump()" 
+                            class="w-full py-3.5 px-5 rounded-2xl font-bold text-sm text-white shadow-md transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer bg-gradient-to-r from-[#729C51] to-[#8bb966] hover:opacity-95 shadow-[#729C51]/30 active:scale-[0.99]">
+                            <i id="main_water_btn_icon" data-lucide="play" class="w-4 h-4 fill-white"></i>
+                            <span id="main_water_btn_text">Siram Sekarang (Manual ON)</span>
+                        </button>
+
+                        <div class="flex items-center gap-1.5 px-2 text-[10px] text-slate-500 dark:text-slate-400">
+                            <i data-lucide="check-circle" class="w-3.5 h-3.5 text-[#729C51] shrink-0"></i>
+                            <span>Otomatis menyiram saat tanah &lt;35% dan berhenti saat &gt;70%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. KARTU KELEMBAPAN TANAH (Spans 4 Cols) -->
+                <div class="lg:col-span-4 bento-card rounded-[28px] p-5 flex flex-col justify-between gap-3">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <div class="w-7 h-7 rounded-xl bg-teal-500/15 text-teal-600 flex items-center justify-center">
+                                <i data-lucide="droplets" class="w-4 h-4"></i>
+                            </div>
+                            <h3 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">Kelembapan Tanah</h3>
+                        </div>
+                        <a href="kelembapan.html" title="Buka Monitoring Kelembapan" class="text-slate-400 hover:text-[#729C51] transition-colors">
+                            <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
+                        </a>
+                    </div>
+
+                    <div>
+                        <div class="flex items-baseline justify-between">
+                            <div class="flex items-baseline gap-1">
+                                <span id="soil_moisture_display" class="text-4xl font-extrabold text-slate-900 dark:text-white font-mono tracking-tight">81</span>
+                                <span class="text-lg font-bold text-slate-400 font-mono">%</span>
+                            </div>
+                            <span id="soil_status_sub" class="px-2.5 py-1 text-xs font-bold rounded-full bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300">Basah (OFF)</span>
+                        </div>
+                        <span class="text-[11px] text-slate-400 block mt-1">Sensor Kapasitif Live &bull; Zona Perakaran</span>
+                    </div>
+
+                    <!-- Spectrum Bar -->
+                    <div class="space-y-1">
+                        <div class="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full flex overflow-hidden">
+                            <div class="w-1/3 bg-[#EB5011]" title="Kering (<35%)"></div>
+                            <div class="w-1/3 bg-[#729C51]" title="Ideal (36-70%)"></div>
+                            <div class="w-1/3 bg-[#C7E0ED]" title="Basah (>70%)"></div>
+                        </div>
+                        <div class="flex justify-between text-[9px] font-semibold text-slate-400">
+                            <span>Kering (&lt;35%)</span>
+                            <span>Ideal (36-70%)</span>
+                            <span>Basah (&gt;70%)</span>
+                        </div>
+                    </div>
+
+                    <a href="kelembapan.html" class="text-xs font-bold text-[#729C51] hover:underline flex items-center gap-1 pt-1">
+                        <span>Lihat Analisis Strata Tanah</span>
+                        <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                    </a>
+                </div>
+
+                <!-- 4. KARTU LAJU PERTUMBUHAN (Spans 4 Cols) -->
+                <div class="lg:col-span-4 bento-card rounded-[28px] p-5 flex flex-col justify-between gap-3">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <div class="w-7 h-7 rounded-xl bg-[#729C51]/15 text-[#729C51] flex items-center justify-center">
+                                <i data-lucide="trending-up" class="w-4 h-4"></i>
+                            </div>
+                            <h3 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">Laju Pertumbuhan</h3>
+                        </div>
+                        <a href="kelembapan.html" title="Detail Pertumbuhan" class="text-slate-400 hover:text-[#729C51] transition-colors">
+                            <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
+                        </a>
+                    </div>
+
+                    <div>
+                        <div id="growth_rate_val" class="text-4xl font-extrabold text-slate-900 dark:text-white font-mono tracking-tight">0.81</div>
+                        <div class="text-[11px] text-slate-400 font-medium mt-1">Indeks biomassa: <span id="growth_rate_status" class="font-bold text-[#729C51]">0.81 Optimal</span> &bull; Lahan A</div>
+                    </div>
+
+                    <!-- Daily Bar Histogram with Dates -->
+                    <div class="h-24 w-full">
+                        <canvas id="growthRateChart"></canvas>
+                    </div>
+
+                    <div class="text-[10px] text-slate-400 pt-1 flex items-center justify-between">
+                        <span>Evaluasi Harian</span>
+                        <span class="font-semibold text-emerald-600 dark:text-emerald-400">+12% vs Minggu Lalu</span>
+                    </div>
+                </div>
+
+                <!-- 5. KARTU SIKLUS PEMUPUKAN (Spans 4 Cols) -->
+                <div class="lg:col-span-4 bento-card rounded-[28px] p-5 flex flex-col justify-between gap-3">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <div class="w-7 h-7 rounded-xl bg-amber-500/15 text-amber-600 flex items-center justify-center">
+                                <i data-lucide="calendar" class="w-4 h-4"></i>
+                            </div>
+                            <h3 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">Siklus Pemupukan</h3>
+                        </div>
+                        <a href="pupuk.html" title="Buka Jadwal Pupuk" class="text-slate-400 hover:text-amber-600 transition-colors">
+                            <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
+                        </a>
+                    </div>
+
+                    <div>
+                        <div class="flex items-baseline gap-1.5">
+                            <span id="jadwal_pupuk_display" class="text-4xl font-extrabold text-slate-900 dark:text-white font-mono tracking-tight">29</span>
+                            <span class="text-base font-bold text-slate-400 font-mono">Hari Lagi</span>
+                        </div>
+                        <div class="text-[11px] text-slate-400 font-medium mt-1">
+                            Konsentrasi EC: <strong id="ec_display" class="text-slate-800 dark:text-slate-200">2.1 mS</strong> &bull; Nutrisi Terjadwal
+                        </div>
+                    </div>
+
+                    <a href="pupuk.html" class="text-xs font-bold text-[#729C51] hover:underline flex items-center gap-1 pt-1">
+                        <span>Atur Jadwal &amp; Dosis Pupuk</span>
+                        <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                    </a>
+                </div>
+
+            </div>
+
+        </main>
+    </div>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toast" class="fixed top-6 right-6 z-50 transform -translate-y-12 opacity-0 transition-all duration-300 pointer-events-none flex items-center gap-2.5 px-4 py-2.5 bg-slate-900 text-white rounded-2xl shadow-xl text-xs font-medium">
+        <i id="toast_icon" data-lucide="check-circle" class="w-4 h-4 text-[#729C51]"></i>
+        <span id="toast_message">Notifikasi SIRINTIS</span>
+    </div>
+
+    <!-- JAVASCRIPT APPLICATION CORE -->
+    <script>
+        // Firebase RTDB Configuration
+        const firebaseConfig = {
+            databaseURL: "https://smart-watering-nz-default-rtdb.asia-southeast1.firebasedatabase.app"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const rtdb = firebase.database();
+        const penyiramRef = rtdb.ref('penyiram');
+
+        let isPumpOn = false;
+        let lastMoisture = 55;
+        let sessionWaterLiters = 0.000;
+        let currentFlowRateLH = 0;
+        let pumpFlowInterval = null;
+        let mainTargetDurationMinutes = 0;
+        let mainAutoStopTimeout = null;
+        let lastUserActionTime = 0;
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast_message').innerText = message;
+            toast.classList.remove('-translate-y-12', 'opacity-0');
+            setTimeout(() => toast.classList.add('-translate-y-12', 'opacity-0'), 3200);
+        }
+
+        function savePumpSyncState(manual, durasi, startTimeVal) {
+            try {
+                localStorage.setItem('sirintis_pump_sync', JSON.stringify({
+                    manual: !!manual,
+                    durasi: Number(durasi) || 0,
+                    startTime: startTimeVal !== undefined ? startTimeVal : (manual ? (mainPumpStartTime || Date.now()) : 0),
+                    timestamp: Date.now()
+                }));
+            } catch (e) {}
+        }
+
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'sirintis_pump_sync' && e.newValue) {
+                try {
+                    const state = JSON.parse(e.newValue);
+                    if (state.manual !== undefined) {
+                        if (state.manual && state.startTime) {
+                            mainPumpStartTime = state.startTime;
+                        }
+                        updatePumpVisual(state.manual, state.durasi || 0, state.startTime);
+                    }
+                } catch (err) {}
+            }
+        });
+
+        // Toggle Sakelar Pompa Terpadu (Water Flow & Penyiram)
+        async function quickTogglePump() {
+            lastUserActionTime = Date.now();
+            if (isPumpOn) {
+                // Matikan Pompa Segera
+                if (mainAutoStopTimeout) {
+                    clearTimeout(mainAutoStopTimeout);
+                    mainAutoStopTimeout = null;
+                }
+                mainPumpStartTime = null;
+                isPumpOn = false;
+                mainTargetDurationMinutes = 0;
+                updatePumpVisual(false, 0, 0);
+                savePumpSyncState(false, 0, 0);
+                try {
+                    await penyiramRef.update({ manual: false, durasi: 0, startTime: 0 });
+                    showToast("Pompa irigasi BERHASIL DIMATIKAN (Total air tereset ke 0.000 L)");
+                } catch (e) {
+                    console.error("Gagal update rtdb:", e);
+                }
+            } else {
+                // Nyalakan Pompa
+                const targetM = mainTargetDurationMinutes > 0 ? mainTargetDurationMinutes : 10;
+                mainTargetDurationMinutes = targetM;
+                isPumpOn = true;
+                mainPumpStartTime = Date.now();
+                updatePumpVisual(true, targetM, mainPumpStartTime);
+                savePumpSyncState(true, targetM, mainPumpStartTime);
+                try {
+                    await penyiramRef.update({ manual: true, durasi: targetM, startTime: mainPumpStartTime });
+                    showToast(`Pompa irigasi AKTIF (${targetM} Menit \u2022 Debit: 80-120 L/H)`);
+                } catch (e) {
+                    console.error("Gagal update rtdb:", e);
+                }
+                if (mainAutoStopTimeout) clearTimeout(mainAutoStopTimeout);
+                mainAutoStopTimeout = setTimeout(() => {
+                    autoStopMainPumpByTimer();
+                }, targetM * 60 * 1000);
+            }
+        }
+
+        function handleMainSliderInput(val) {
+            const mins = Number(val);
+            const pill = document.getElementById('main_slider_status_pill');
+            if (mins === 0) {
+                if (pill) {
+                    pill.innerText = "0 Menit (MATI / OFF)";
+                    pill.className = "px-2.5 py-0.5 rounded-full text-[11px] font-bold font-mono bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300";
+                }
+            } else {
+                if (pill) {
+                    pill.innerText = `${mins} Menit (MENYIRAM / ON)`;
+                    pill.className = "px-2.5 py-0.5 rounded-full text-[11px] font-bold font-mono bg-[#729C51] text-white animate-pulse";
+                }
+            }
+        }
+
+        let mainPumpStartTime = null;
+
+        async function autoStopMainPumpByTimer() {
+            isPumpOn = false;
+            mainTargetDurationMinutes = 0;
+            mainPumpStartTime = null;
+            updatePumpVisual(false, 0);
+            savePumpSyncState(false, 0);
+            try {
+                await penyiramRef.update({ manual: false, durasi: 0 });
+                showToast("Waktu penyiraman selesai. Pompa otomatis DIMATIKAN.");
+            } catch (e) {
+                console.error("Gagal stop pompa di rtdb:", e);
+            }
+        }
+
+        async function handleMainSliderChange(val) {
+            lastUserActionTime = Date.now();
+            const mins = Number(val);
+            
+            if (mainAutoStopTimeout) {
+                clearTimeout(mainAutoStopTimeout);
+                mainAutoStopTimeout = null;
+            }
+
+            if (mins > 0) {
+                mainTargetDurationMinutes = mins;
+                isPumpOn = true;
+                mainPumpStartTime = Date.now(); // Reset waktu mulai agar durasi dihitung penuh dari saat slider diset
+                updatePumpVisual(true, mins, mainPumpStartTime);
+                savePumpSyncState(true, mins, mainPumpStartTime);
+                try {
+                    await penyiramRef.update({ manual: true, durasi: mins, startTime: mainPumpStartTime });
+                    showToast(`Timer diatur ke ${mins} Menit. Pompa otomatis mati setelah ${mins} menit.`);
+                } catch (e) {
+                    console.error(e);
+                }
+
+                mainAutoStopTimeout = setTimeout(() => {
+                    autoStopMainPumpByTimer();
+                }, mins * 60 * 1000);
+            } else {
+                mainTargetDurationMinutes = 0;
+                isPumpOn = false;
+                mainPumpStartTime = null;
+                updatePumpVisual(false, 0, 0);
+                savePumpSyncState(false, 0, 0);
+                try {
+                    await penyiramRef.update({ manual: false, durasi: 0, startTime: 0 });
+                    showToast("Pompa DIMATIKAN (Durasi 0 Menit)");
+                } catch (e) {
+                    console.error(e);
+                }
+            }
+        }
+
+        function setMainPumpViaSlider(targetVal) {
+            const slider = document.getElementById('main_pump_slider');
+            if (slider) slider.value = targetVal;
+            handleMainSliderInput(targetVal);
+            handleMainSliderChange(targetVal);
+        }
+
+        function updatePumpVisual(active, durationVal, startTimeVal) {
+            isPumpOn = active;
+            const flowVal = document.getElementById('water_flow_val');
+            const flowRate = document.getElementById('water_flow_rate');
+            const pumpBadge = document.getElementById('water_pump_badge');
+            const indicatorDot = document.getElementById('pump_indicator_dot');
+            const mainBtn = document.getElementById('main_water_btn');
+            const mainBtnText = document.getElementById('main_water_btn_text');
+            const slider = document.getElementById('main_pump_slider');
+            const pill = document.getElementById('main_slider_status_pill');
+
+            if (active) {
+                if (durationVal !== undefined && Number(durationVal) > 0) {
+                    mainTargetDurationMinutes = Number(durationVal);
+                } else if (mainTargetDurationMinutes === 0) {
+                    mainTargetDurationMinutes = (slider && Number(slider.value) > 0) ? Number(slider.value) : 10;
+                }
+
+                if (slider) slider.value = mainTargetDurationMinutes;
+                if (pill) {
+                    pill.innerText = `${mainTargetDurationMinutes} Menit (MENYIRAM / ON)`;
+                    pill.className = "px-2.5 py-0.5 rounded-full text-[11px] font-bold font-mono bg-[#729C51] text-white animate-pulse";
+                }
+                if (pumpBadge) {
+                    pumpBadge.innerText = `Menyiram (${mainTargetDurationMinutes} Mnt)`;
+                    pumpBadge.className = "px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#729C51] text-white animate-pulse";
+                }
+                if (indicatorDot) {
+                    indicatorDot.className = "w-2 h-2 rounded-full bg-[#729C51] animate-ping";
+                }
+                if (mainBtn) {
+                    mainBtn.className = "w-full py-3.5 px-5 rounded-2xl font-bold text-sm text-white shadow-md transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer bg-gradient-to-r from-rose-500 to-red-600 hover:opacity-95 shadow-red-500/30 animate-pulse";
+                }
+
+                if (startTimeVal && typeof startTimeVal === 'number' && startTimeVal > 0) {
+                    mainPumpStartTime = startTimeVal;
+                } else if (!mainPumpStartTime) {
+                    try {
+                        const saved = JSON.parse(localStorage.getItem('sirintis_pump_sync') || '{}');
+                        if (saved.startTime && saved.startTime > 0) {
+                            mainPumpStartTime = saved.startTime;
+                        }
+                    } catch(e) {}
+                    if (!mainPumpStartTime) mainPumpStartTime = Date.now();
+                }
+
+                const elapsedSec = Math.max(0, Math.floor((Date.now() - mainPumpStartTime) / 1000));
+                if (mainBtnText) {
+                    if (mainTargetDurationMinutes > 0) {
+                        const remSec = Math.max(0, (mainTargetDurationMinutes * 60) - elapsedSec);
+                        const remM = Math.floor(remSec / 60);
+                        const remS = remSec % 60;
+                        mainBtnText.innerText = `Matikan Penyiram (Sisa ${remM}:${String(remS).padStart(2,'0')})`;
+                    } else {
+                        mainBtnText.innerText = "Matikan Penyiram (Stop)";
+                    }
+                }
+
+                const tick = () => {
+                    const elSec = Math.max(0, Math.floor((Date.now() - mainPumpStartTime) / 1000));
+
+                    // AUTO-STOP: Jika waktu target menit sudah tercapai
+                    if (mainTargetDurationMinutes > 0 && elSec >= mainTargetDurationMinutes * 60) {
+                        autoStopMainPumpByTimer();
+                        return;
+                    }
+
+                    const rawRate = 100 + Math.sin(Date.now() / 2000) * 16 + (Math.random() * 6 - 3);
+                    currentFlowRateLH = Math.min(120.0, Math.max(80.0, rawRate)).toFixed(1);
+                    
+                    sessionWaterLiters = Math.max(sessionWaterLiters, (elSec * (100 / 3600)));
+
+                    if (flowVal) flowVal.innerText = sessionWaterLiters.toFixed(3);
+                    if (flowRate) {
+                        flowRate.innerText = `${currentFlowRateLH} L/H`;
+                        flowRate.className = "text-2xl sm:text-3xl font-black text-[#729C51] font-mono animate-pulse";
+                    }
+
+                    if (mainBtnText && mainTargetDurationMinutes > 0) {
+                        const remSec = Math.max(0, (mainTargetDurationMinutes * 60) - elSec);
+                        const remM = Math.floor(remSec / 60);
+                        const remS = remSec % 60;
+                        mainBtnText.innerText = `Matikan Penyiram (Sisa ${remM}:${String(remS).padStart(2,'0')})`;
+                    }
+                };
+
+                tick();
+                if (!pumpFlowInterval) {
+                    pumpFlowInterval = setInterval(tick, 500);
+                }
+            } else {
+                // Saat pompa dimatikan: total air tereset otomatis ke 0.000 L, debit kembali ke 0.0 L/H
+                if (pumpFlowInterval) {
+                    clearInterval(pumpFlowInterval);
+                    pumpFlowInterval = null;
+                }
+                if (mainAutoStopTimeout) {
+                    clearTimeout(mainAutoStopTimeout);
+                    mainAutoStopTimeout = null;
+                }
+                mainPumpStartTime = null;
+                sessionWaterLiters = 0;
+                currentFlowRateLH = 0;
+                mainTargetDurationMinutes = 0;
+
+                if (slider) slider.value = 0;
+                if (pill) {
+                    pill.innerText = "0 Menit (MATI / OFF)";
+                    pill.className = "px-2.5 py-0.5 rounded-full text-[11px] font-bold font-mono bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300";
+                }
+                if (flowVal) flowVal.innerText = "0.000";
+                if (flowRate) {
+                    flowRate.innerText = "0.0 L/H";
+                    flowRate.className = "text-2xl sm:text-3xl font-black text-slate-400 font-mono";
+                }
+                if (pumpBadge) {
+                    pumpBadge.innerText = "Siaga (Standby)";
+                    pumpBadge.className = "px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300";
+                }
+                if (indicatorDot) {
+                    indicatorDot.className = "w-2 h-2 rounded-full bg-slate-400";
+                }
+                if (mainBtn) {
+                    mainBtn.className = "w-full py-3.5 px-5 rounded-2xl font-bold text-sm text-white shadow-md transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer bg-gradient-to-r from-[#729C51] to-[#8bb966] hover:opacity-95 shadow-[#729C51]/30 active:scale-[0.99]";
+                }
+                if (mainBtnText) {
+                    mainBtnText.innerText = "Siram Sekarang (Manual ON)";
+                }
+            }
+        }
+
+        // GSAP Countup Animation
+        let currentGrowthRateVal = 0.00;
+        let isInitialGrowthRateAnimated = false;
+
+        function animateGrowthRate(target, duration = 1.2) {
+            const el = document.getElementById('growth_rate_val');
+            if (!el) return;
+            const targetVal = typeof target === 'number' ? target : parseFloat(target) || 0;
+            
+            if (window.gsap) {
+                const proxy = { val: currentGrowthRateVal };
+                gsap.to(proxy, {
+                    val: targetVal,
+                    duration: duration,
+                    ease: "power2.out",
+                    onUpdate: () => {
+                        el.innerText = proxy.val.toFixed(2);
+                    },
+                    onComplete: () => {
+                        currentGrowthRateVal = targetVal;
+                        el.innerText = targetVal.toFixed(2);
+                    }
+                });
+            } else {
+                currentGrowthRateVal = targetVal;
+                el.innerText = targetVal.toFixed(2);
+            }
+        }
+
+        // Master Telemetry Updater: Merefleksikan data RTDB langsung ke UI
+        function updateDashboardTelemetry(data) {
+            if (!data) return;
+
+            // 1. Kelembapan Tanah
+            if (data.kelembapan !== undefined) {
+                const moisture = Number(data.kelembapan);
+                lastMoisture = moisture;
+
+                const elSoil = document.getElementById('soil_moisture_display');
+                if (elSoil) elSoil.innerText = moisture;
+
+                const elSoilSub = document.getElementById('soil_status_sub');
+                if (elSoilSub) {
+                    if (moisture < 35) {
+                        elSoilSub.innerText = "Kering (Perlu Air)";
+                        elSoilSub.className = "px-2.5 py-1 text-xs font-bold rounded-full bg-orange-100 text-orange-800 dark:bg-orange-950 dark:text-orange-300";
+                    } else if (moisture <= 70) {
+                        elSoilSub.innerText = "Optimal (Lembap)";
+                        elSoilSub.className = "px-2.5 py-1 text-xs font-bold rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300";
+                    } else {
+                        elSoilSub.innerText = "Basah (Jenuh Air)";
+                        elSoilSub.className = "px-2.5 py-1 text-xs font-bold rounded-full bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300";
+                    }
+                }
+
+                // Kalkulasi Laju Pertumbuhan & Progres Lingkaran
+                const deviation = Math.abs(moisture - 55);
+                const calculatedGrowth = Math.max(20, Math.min(98, Math.round(98 - (deviation * 1.05))));
+
+                const elHarvest = document.getElementById('harvest_percent');
+                if (elHarvest) elHarvest.innerText = `${calculatedGrowth}%`;
+
+                const elCircle = document.getElementById('harvest_circle');
+                if (elCircle) {
+                    const circumference = 251;
+                    const offset = circumference - (calculatedGrowth / 100) * circumference;
+                    elCircle.style.strokeDashoffset = offset;
+                    elCircle.setAttribute('stroke', calculatedGrowth >= 75 ? '#729C51' : (calculatedGrowth >= 50 ? '#C7E0ED' : '#EB5011'));
+                }
+
+                const elHarvestStatus = document.getElementById('harvest_status');
+                if (elHarvestStatus) {
+                    elHarvestStatus.innerText = calculatedGrowth >= 80 ? 'Kondisi Pertumbuhan Prima' : (calculatedGrowth >= 60 ? 'Pertumbuhan Stabil' : 'Perlu Penyesuaian Air');
+                }
+
+                const elBadge = document.getElementById('harvest_kelembapan_badge');
+                if (elBadge) {
+                    elBadge.innerText = `${moisture}% ${moisture < 35 ? 'Kering' : (moisture <= 70 ? 'Lembap' : 'Basah')}`;
+                }
+
+                const targetGrowthRate = parseFloat((calculatedGrowth / 100).toFixed(2));
+                animateGrowthRate(targetGrowthRate, isInitialGrowthRateAnimated ? 0.8 : 1.2);
+                isInitialGrowthRateAnimated = true;
+
+                const elGrowthStatus = document.getElementById('growth_rate_status');
+                if (elGrowthStatus) {
+                    elGrowthStatus.innerText = `${targetGrowthRate.toFixed(2)} ${calculatedGrowth >= 80 ? 'Optimal' : (calculatedGrowth >= 60 ? 'Stabil' : 'Kritis')}`;
+                }
+            }
+
+            // 2. Pompa Irigasi & Sinkronisasi Scroll Bar Waktu
+            if (data.manual !== undefined) {
+                // Hindari race condition jika baru saja diubah pengguna secara lokal
+                if (Date.now() - lastUserActionTime > 2500) {
+                    const isManual = data.manual === true;
+                    const durasi = Number(data.durasi) || 0;
+                    const startTime = Number(data.startTime) || 0;
+                    if (isManual) {
+                        if (startTime > 0) mainPumpStartTime = startTime;
+                        updatePumpVisual(true, durasi > 0 ? durasi : 10, startTime);
+                    } else {
+                        mainPumpStartTime = null;
+                        updatePumpVisual(false, 0, 0);
+                    }
+                }
+            }
+
+            // 3. Jadwal Pemupukan
+            const jadwal = data.jadwal_pupuk !== undefined ? data.jadwal_pupuk : data.jadwalPupuk;
+            if (jadwal !== undefined) {
+                const elJadwal = document.getElementById('jadwal_pupuk_display');
+                if (elJadwal) elJadwal.innerText = jadwal;
+
+                const ec = (1.8 + (30 - Math.min(30, Number(jadwal))) * 0.025).toFixed(1);
+                const elEC = document.getElementById('ec_display');
+                if (elEC) elEC.innerText = `${ec} mS`;
+            }
+        }
+
+        // Fast REST Polling Fallback dengan Cache-Busting
+        async function syncFromRest() {
+            try {
+                const res = await fetch("https://smart-watering-nz-default-rtdb.asia-southeast1.firebasedatabase.app/penyiram.json?_t=" + Date.now(), {
+                    cache: 'no-store'
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data) updateDashboardTelemetry(data);
+                }
+            } catch (err) {
+                console.warn("REST sync check:", err);
+            }
+        }
+
+        function fetchLatestData() {
+            syncFromRest().then(() => {
+                showToast(`Sinkronisasi RTDB Berhasil: Kelembapan ${lastMoisture}%, Pompa ${isPumpOn ? 'ON' : 'OFF'}`);
+                lucide.createIcons();
+            });
+        }
+
+        // Realtime WebSocket Listener
+        penyiramRef.on('value', (snap) => {
+            const data = snap.val() || {};
+            updateDashboardTelemetry(data);
+        });
+
+        // Pulihkan status pompa seketika dari cache lokal saat halaman dimuat
+        try {
+            const initialSync = JSON.parse(localStorage.getItem('sirintis_pump_sync') || '{}');
+            if (initialSync.manual) {
+                isPumpOn = true;
+                mainPumpStartTime = initialSync.startTime || Date.now();
+                mainTargetDurationMinutes = initialSync.durasi || 10;
+                updatePumpVisual(true, mainTargetDurationMinutes, mainPumpStartTime);
+            }
+        } catch(e) {}
+
+        setInterval(syncFromRest, 3500);
+
+        function toggleTheme() {
+            document.documentElement.classList.toggle('dark');
+            const isDark = document.documentElement.classList.contains('dark');
+            const icon = document.getElementById('theme_icon');
+            const iconMobile = document.getElementById('theme_icon_mobile');
+            if (icon) icon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+            if (iconMobile) iconMobile.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+            lucide.createIcons();
+        }
+
+        // Inisialisasi Grafik
+        window.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+
+            if (!isInitialGrowthRateAnimated) {
+                animateGrowthRate(0.81, 1.2);
+                isInitialGrowthRateAnimated = true;
+            }
+
+            // Growth Rate Bar Chart
+            const ctxGrowth = document.getElementById('growthRateChart').getContext('2d');
+            new Chart(ctxGrowth, {
+                type: 'bar',
+                data: {
+                    labels: ['20 Jul', '21 Jul', '22 Jul', '23 Jul', '24 Jul', '25 Jul', '26 Jul'],
+                    datasets: [{
+                        data: [3, 4, 3, 6, 7, 4, 3],
+                        backgroundColor: (ctx) => (ctx.dataIndex >= 3 && ctx.dataIndex <= 4) ? '#729C51' : 'rgba(203, 213, 225, 0.55)',
+                        borderRadius: 4,
+                        barThickness: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { size: 9 }, color: '#94a3b8' }
+                        },
+                        y: { display: false }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
